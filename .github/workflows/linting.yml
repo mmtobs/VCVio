@@ -12,6 +12,7 @@ on:
       - "VCVioTest/SMDTDSPRFinalValidity.lean"
       - "VCVioTest/SMDTOpenPREFinalValidity.lean"
       - "VCVioTest/SMDTUDFinalValidity.lean"
+      - "VCVioTest/SMDTRTCR.lean"
       - "VCVioTest/CryptoFoundations/SignatureAlg.lean"
       - "VCVioTest/SMDTTCR.lean"
       - "VCVioTest/SMDTPRE.lean"
@@ -42,6 +43,7 @@ on:
       - "VCVioTest/SMDTDSPRFinalValidity.lean"
       - "VCVioTest/SMDTOpenPREFinalValidity.lean"
       - "VCVioTest/SMDTUDFinalValidity.lean"
+      - "VCVioTest/SMDTRTCR.lean"
       - "VCVioTest/CryptoFoundations/SignatureAlg.lean"
       - "VCVioTest/SMDTTCR.lean"
       - "VCVioTest/SMDTPRE.lean"
@@ -111,7 +113,7 @@ jobs:
           Interop VCVioTest.SMDTTCR VCVioTest.SMDTPRE
           VCVioTest.SMDTPREFinalValidity VCVioTest.SMDTTCRFinalValidity
           VCVioTest.ITSR VCVioTest.SMDTDSPRFinalValidity VCVioTest.SMDTOpenPREFinalValidity
-          VCVioTest.SMDTUDFinalValidity
+          VCVioTest.SMDTRTCR VCVioTest.SMDTUDFinalValidity
           VCVioTest.CryptoFoundations.SignatureAlg
           HashSigTest.SLHDSA.Params HashSigTest.SLHDSA.Position HashSigTest.SLHDSA.Oracle
           HashSigTest.SLHDSA.DataCodecTests
