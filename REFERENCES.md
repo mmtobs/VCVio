@@ -1,8 +1,8 @@
 # References
 
-This file centralizes public external references cited in `README.md` and `docs/agents/`.
-When adding new references to shared docs, prefer linking here instead of duplicating partial
-citations inline.
+This file centralizes public external references cited in `README.md`, `docs/agents/`, and the
+module docstrings of the Lean libraries. When adding new references to shared docs, prefer
+linking here instead of duplicating partial citations inline.
 
 ## Papers
 
@@ -54,6 +54,31 @@ Public abstract: <https://arxiv.org/abs/1410.3735>
 
 Used in:
 - `README.md`
+
+### DKKW25
+
+Justin Drake, Dmitry Khovratovich, Mikhail Kudinov, and Benedikt Wagner.
+*Hash-Based Multi-Signatures for Post-Quantum Ethereum*.
+IACR Cryptology ePrint Archive, Report 2025/055, 2025.
+Preprint: <https://eprint.iacr.org/2025/055>
+
+Used in:
+- `VCVio/CryptoFoundations/HardnessAssumptions/TweakableHash/SMDTTCR.lean`
+- `VCVio/CryptoFoundations/HardnessAssumptions/TweakableHash/SMDTPRE.lean`
+- `VCVio/CryptoFoundations/HardnessAssumptions/TweakableHash/SMDTDSPR.lean`
+- `VCVio/CryptoFoundations/HardnessAssumptions/TweakableHash/SMDTUD.lean`
+- `VCVio/CryptoFoundations/HardnessAssumptions/TweakableHash/SMDTUDFinalValidity.lean`
+
+### HK22
+
+Andreas Hülsing and Mikhail Kudinov.
+*Recovering the Tight Security Proof of SPHINCS+*.
+IACR Cryptology ePrint Archive, Report 2022/346, 2022.
+Preprint: <https://eprint.iacr.org/2022/346>
+
+Used in:
+- `VCVio/CryptoFoundations/HardnessAssumptions/TweakableHash/Collection.lean`
+- the `TweakableHash` multi-target game modules that build on it
 
 ## Projects and Repositories
 
