@@ -6,6 +6,7 @@ Authors: Quang Dao
 
 module
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.Collection
+public import VCVio.OracleComp.SimSemantics.StateT.PreservesInv
 
 /-!
 # Source-final-validity monitoring for multi-target tweakable-hash games
@@ -211,6 +212,21 @@ recovered rather than merely approximated, so it is pinned rather than asserted.
 theorem isEmpty_domain_collectionSpec_empty :
     IsEmpty (collectionSpec (TweakableHashCollection.empty PkSeed Tweak Y)).Domain :=
   ⟨fun q => q.1.elim⟩
+
+/-! ## Invariant preservation -/
+
+/-- The private-randomness summand of a game's oracle implementation answers by lifting its query
+into the state monad, so it never writes the monitor state and preserves every invariant. The state
+belongs to the target and collection summands, which record through `State.recordTarget` and
+`State.recordCollection`. -/
+theorem preservesInv_privateRandomness {σ : Type} (Inv : σ → Prop) :
+    QueryImpl.PreservesInv
+      ((QueryImpl.ofLift unifSpec ProbComp).liftTarget (StateT σ ProbComp)) Inv := by
+  intro t σ0 hσ0 z hz
+  simp only [QueryImpl.liftTarget_apply, QueryImpl.ofLift_apply, StateT.run_liftM,
+    mem_support_bind_iff, support_pure, Set.mem_singleton_iff] at hz
+  obtain ⟨a, -, rfl⟩ := hz
+  exact hσ0
 
 /-! ## Semantic pins -/
 
