@@ -9,6 +9,7 @@ on:
       - "VCVioTest/SMDTPREFinalValidity.lean"
       - "VCVioTest/SMDTTCRFinalValidity.lean"
       - "VCVioTest/ITSR.lean"
+      - "VCVioTest/SMDTDSPR.lean"
       - "VCVioTest/SMDTDSPRFinalValidity.lean"
       - "VCVioTest/SMDTOpenPREFinalValidity.lean"
       - "VCVioTest/SMDTUD.lean"
@@ -40,6 +41,7 @@ on:
       - "VCVioTest/SMDTPREFinalValidity.lean"
       - "VCVioTest/SMDTTCRFinalValidity.lean"
       - "VCVioTest/ITSR.lean"
+      - "VCVioTest/SMDTDSPR.lean"
       - "VCVioTest/SMDTDSPRFinalValidity.lean"
       - "VCVioTest/SMDTOpenPREFinalValidity.lean"
       - "VCVioTest/SMDTUD.lean"
@@ -112,7 +114,8 @@ jobs:
           lake exe lint-style ToMathlib VCVio Extern LatticeCrypto HashSig Examples VCVioWidgets
           Interop VCVioTest.SMDTTCR VCVioTest.SMDTPRE
           VCVioTest.SMDTPREFinalValidity VCVioTest.SMDTTCRFinalValidity
-          VCVioTest.ITSR VCVioTest.SMDTDSPRFinalValidity VCVioTest.SMDTOpenPREFinalValidity
+          VCVioTest.ITSR VCVioTest.SMDTDSPR VCVioTest.SMDTDSPRFinalValidity
+          VCVioTest.SMDTOpenPREFinalValidity
           VCVioTest.SMDTUD VCVioTest.SMDTUDFinalValidity
           VCVioTest.CryptoFoundations.SignatureAlg
           HashSigTest.SLHDSA.Params HashSigTest.SLHDSA.Position HashSigTest.SLHDSA.Oracle
