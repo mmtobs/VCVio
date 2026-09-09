@@ -54,6 +54,7 @@ public import VCVio.CryptoFoundations.HardnessAssumptions.OneWay
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.Collection
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.FinalValidity
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.OpenPREFromTCRDSPR
+public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTDSPR
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTDSPRFinalValidity
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTOpenPREFinalValidity
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTPRE
@@ -61,8 +62,10 @@ public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTPREF
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTRTCR
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTTCR
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTTCRFinalValidity
+public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTUD
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTUDFinalValidity
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.ToFinalValidity
+public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.ToFinalValidity.Core
 public import VCVio.CryptoFoundations.HashCommitment
 public import VCVio.CryptoFoundations.IdenSchemeWithAbort
 public import VCVio.CryptoFoundations.KEMDEM
