@@ -201,3 +201,10 @@ Rust extraction, implementation refinement, measured runtime, the paper's full
 asymptotic running-time claims, or cryptographic hardness of the named
 problems. Optional padded or weighted variants, concrete runtimes and
 extraction tools are outside the generic proof and consumer closure.
+
+## Arbitrary-depth construction
+
+The [hypertree reading guide](gxmss-hypertree.md) describes the positive-depth construction,
+coordinate-local encoding fibres, fixed optional certificates, averaged correctness and
+layout-indexed shared-key derivation. Its construction checkpoint is for functional transports;
+the guide identifies the separate global security qualification obligations.
