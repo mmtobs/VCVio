@@ -92,9 +92,19 @@ continuation laws. The generic splice, source-mass and telescope kernels live on
 `FamilyEncoding` uses one mixed transcript, full coordinates and each fibre's own retry
 plan. The eager record cap is `qs+U`. Its exact strategy-dependent collision advantage stays
 explicit; neither incomparability nor correlated counter sampling implies it is small.
-`EncodingAcceptedOutput` provides a shared transport kernel whose weaker decoder injectivity
-premise applies only to accepted outputs. A mixed-family hash-only specialization still needs
-an actual compatible bridge.
+`EncodingAcceptedOutput` provides the ordinary IID accepted-output transport kernel.
+`FamilyEncodingAcceptedOutput` supplies the mixed strategy-indexed native hash challenge:
+it returns a selected randomizer or exhaustion and retains full consumed-coordinate records.
+Its `AcceptedBridge` requires decoder injectivity only on each coordinate's accepted outputs.
+Actual successful `family.value` equations in the invariant establish acceptance of both
+compared digests. `HashRetry` transports the complete fixed-coin first-success result,
+including attempt count and consumed prefix.
+
+The direct and PRF files also expose `strong_unforgeability_reduction_bound_hashEncoding`
+and `hashEncodingStrongUnforgeabilityBound`. They replace the encoding advantage using that
+proved bridge, with no additional loss. The native hash primitive uses the captured retry
+strategies. For counters it is distinct from IID SM-DT-rTCR; no hardness implication between
+these primitives is asserted. Neither advantage is assumed small.
 
 Import `HashSig.GXMSS.Security.Hypertree.PRFDerivedUnforgeability` for
 `GXMSS.Hypertree.PRFDerived.Unforgeability.strong_unforgeability_reduction_bound` and its
@@ -118,26 +128,35 @@ and signature equivalences, root/path/verifier equations and IID signing/key-gen
 Import `HashSig.GXMSS.Security.Hypertree.SingleLayer` for actual enriched-source transports,
 regular/strong Boolean measures and advantages, and the primitive observations.
 
-The named Merkle, same-message chain and chain-cut reductions have full Boolean experiment
-and advantage equalities to the historical complete-tree reductions on the reindexed source
-adversary. Merkle and same-message experiments also have explicit full-range interval laws.
-The family encoding experiment has a full measure/advantage transport to an explicitly
-translated ordinary encoding strategy. Equality with the historical named encoding simulator
-has not been proved.
+The named Merkle, encoding, same-message chain, chain-cut and PRE reductions have complete
+Boolean experiment and advantage transports to the established complete-tree reductions on
+`adversaryToOrdinary`. `chainUDExperiment_single` preserves each authoritative UD world;
+`chainUDAdvantage_single` preserves their advantage. The encoding correspondence uses the
+same signing-query bound as the security theorem and compares the actual historical named
+reduction, not only an unrelated translated strategy.
 
-The chain compatibility module proves selector sampling, original PRE/UD problems, both
-challenge responses, every spliced prefix, canonical fallback and validity-guard equations.
-Complete adaptive PRE/UD experiment and advantage equalities remain unproved. They require
-joint spliced IID-retry/filtered-state transport and preservation of fallback output mass.
-Consequently, full displayed-RHS compatibility and the requested relaxed complete-bound
-corollary are not claimed here. These gaps do not replace or assume the direct forest bound.
+`SingleLayerChainGames` proves the joint spliced IID retry/filtered-history law. A killed native
+filter returns fixed uniform-query answers while the ordinary filter keeps sampling. Their
+optional forgery/history observations agree; raw killed-branch forgeries and operational costs
+are not identified. `SingleLayerChainInvariant` retains each attempt's actual shared coin,
+history coverage and unique consumed epoch. `SingleLayerChainObservation` and the cut lemmas
+identify the current references and selected observation without assuming honest endpoints.
+`SingleLayerChainExperiments` then proves full PRE and both UD experiment laws. The PRE proof
+explicitly preserves accidental canonical-fallback wins and their returned Boolean mass.
+
+`SingleLayerBound` proves `strongUnforgeabilityBound_single`, identifying all six named
+advantages and sharp coefficients. `strongUnforgeabilityBound_eq_interval_full` recovers the sharp full-range
+interval right-hand side. `strong_unforgeability_relaxed_complete` gives the established
+complete-tree power-of-two relaxation separately. All these laws use actual game observations;
+coefficient rewrites alone do not substitute for primitive experiment transport.
 
 ## Review and evidence limits
 
 The focused consumers under `HashSigTest/GXMSS/Hypertree` include independent coordinate
 canaries, successful/failing construction controls, correlated retry controls and kernel
-origin/body/transitive-axiom audits. `PublicAPI` applies construction/correctness endpoints
-through ordinary public imports.
+origin/body/transitive-axiom audits. The
+[public import consumer](../../HashSigTest/GXMSS/Hypertree/PublicAPI.lean) applies construction
+and correctness endpoints through ordinary public imports.
 
 The clean early construction checkpoint is qualified for functional transports only. A final
 candidate's exact source, independent reviews, completed and missing checks, and depth-one

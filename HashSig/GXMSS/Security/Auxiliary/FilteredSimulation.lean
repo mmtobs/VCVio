@@ -6,6 +6,7 @@ Authors: Matthias Meijers
 
 module
 public import VCVio.OracleComp.SimSemantics.StateT.StateProjection
+public import VCVio.OracleComp.SimSemantics.StateT.Measure
 public import VCVio.OracleComp.EvalDist.Sum
 
 /-!
@@ -19,6 +20,68 @@ public section
 
 namespace GXMSS.Reductions.FilteredSimulation
 open OracleComp OracleSpec ENNReal
+
+/-- Local joint distributional projections on reachable states preserve the complete adaptive
+result and projected state, including returned failures and missing mass. -/
+theorem map_simulateQ_run_evalDistEq_of_query
+    {ι : Type} {spec : OracleSpec ι} {σ₁ σ₂ α : Type}
+    (left : QueryImpl spec (StateT σ₁ ProbComp))
+    (right : QueryImpl spec (StateT σ₂ ProbComp))
+    (project : σ₁ → σ₂) (inv : σ₁ → Prop)
+    (hinv : QueryImpl.PreservesInv left inv)
+    (hstep : ∀ t s, inv s →
+      Prod.map id project <$> (left t).run s =ᵈ (right t).run (project s))
+    (program : OracleComp spec α) (state : σ₁) (hstate : inv state) :
+    Prod.map id project <$> (simulateQ left program).run state =ᵈ
+      (simulateQ right program).run (project state) := by
+  have hintertwines : QueryImpl.IntertwinesOn inv (fun s => pure (project s)) left right := by
+    intro t s hs γ _ continuation
+    have h := ((hstep t s hs).bind_left
+      (fun result => continuation result.1 result.2)).evalDist_eq
+    simpa only [pure_bind, bind_map_left, Prod.map_fst, Prod.map_snd, id_eq] using h
+  let : MeasurableSpace (α × σ₂) := ⊤
+  apply EvalDistEq.of_evalDist_eq
+  have h := hintertwines.evalDist_simulateQ_run hinv program state hstate
+    (fun result finalState => pure (result, finalState))
+  simpa only [pure_bind, bind_pure_comp, map_pure, Prod.eta, bind_pure,
+    Prod.map_def, id_eq] using h
+
+/-- Absorbing optional-state simulations may return different answers after rejection. Their
+complete optional result/state observations still agree when their surviving steps agree.
+The discarded rejected suffix is lossless because both handlers take values in `ProbComp`. -/
+theorem masked_simulateQ_run_evalDistEq
+    {ι : Type} {spec : OracleSpec ι} {σ α : Type}
+    (left right : QueryImpl spec (StateT (Option σ) ProbComp))
+    (hleft : ∀ t, ∀ out ∈ support ((left t).run none), out.2 = none)
+    (hright : ∀ t, ∀ out ∈ support ((right t).run none), out.2 = none)
+    (hstep : ∀ t s, (left t).run (some s) =ᵈ (right t).run (some s))
+    (program : OracleComp spec α) (state : Option σ) :
+    (fun out => out.2.map (fun s => (out.1, s))) <$> (simulateQ left program).run state =ᵈ
+      (fun out => out.2.map (fun s => (out.1, s))) <$>
+        (simulateQ right program).run state := by
+  have hnone (impl : QueryImpl spec (StateT (Option σ) ProbComp))
+      (habsorb : ∀ t, ∀ out ∈ support ((impl t).run none), out.2 = none)
+      (oa : OracleComp spec α) :
+      (fun out => out.2.map (fun s => (out.1, s))) <$> (simulateQ impl oa).run none =ᵈ
+        (pure (none : Option (α × σ)) : ProbComp _) := by
+    have hpreserve : ∀ out ∈ support ((simulateQ impl oa).run none), out.2 = none :=
+      simulateQ_run_preserves_inv_of_query impl (fun s => s = none)
+        (fun t s hs out hout => by subst s; exact habsorb t out hout) oa none rfl
+    rw [map_eq_bind_pure_comp]
+    refine (OracleComp.EvalDistEq.bind_congr_of_support _ (fun out hout => ?_)).trans
+      (OracleComp.EvalDistEq.bind_const _ (pure none))
+    simp only [Function.comp_def, hpreserve out hout, Option.map_none]
+    exact EvalDistEq.refl _
+  induction program using OracleComp.inductionOn generalizing state with
+  | pure result =>
+    simp only [simulateQ_pure, StateT.run_pure]
+    exact EvalDistEq.refl _
+  | query_bind t next ih =>
+    cases state with
+    | none => exact (hnone left hleft _).trans (hnone right hright _).symm
+    | some s =>
+      simp only [simulateQ_bind, simulateQ_spec_query, StateT.run_bind, map_bind]
+      exact (hstep t s).bind_congr (fun out => ih out.1 out.2)
 
 /-- State projection through an absorbing filter preserves each good returned output, even when
 bad paths later lose mass. This deliberately asserts no equality for bad or missing outputs. -/

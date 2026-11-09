@@ -74,17 +74,48 @@ example {PP T X H M R : Type} {h w v : ℕ} [SampleableType R]
       TargetCollisionResistance.experiment (adversaryToOrdinary hash enc qs K J adv) :=
   experiment_evalDistEq hash enc qs K J adv
 
+/-- A failed signing request remains occupied in the complete observed private state. -/
+theorem failed_history_occupied :
+    (stateObservation (H := Unit) (h := 0) (w := 1) (v := 1)
+      ((fun _ => some (true, none)),
+        [⟨query.1, query.2, (none : Option (Codeword 1 2 × Bool))⟩])).1 0 =
+          some (true, none) := by
+  rfl
+
+/-- Ordinary public imports expose the actual historical named experiment correspondence. -/
+example {PP T X H M R : Type} {h w v : ℕ} [SampleableType H] [SampleableType R]
+    [DecidableEq M] [DecidableEq H] [DecidableEq R]
+    (hash : GXMSS.HashInstance PP T X H h w v)
+    (enc : IncomparableEncoding PP M R (Fin (2 ^ h)) v (2 ^ w)) (qs K J : ℕ)
+    (adv : Security.SchemeAdversary PP H M R (singleShape h w v))
+    (hqueries : ∀ pk, (adv.forge pk).IsQueryBoundP (fun q => q.isRight = true) qs) :
+    FamilyEncoding.experiment (Security.encodingTargetCollisionReduction (liftHash hash)
+      (familyOfEncoding enc) (RetrySampling.iid K J) qs adv) =ᵈ
+      TargetCollisionResistance.experiment (GXMSS.Reductions.encodingTargetCollisionReduction
+        hash enc qs K (SingleLayer.adversaryToOrdinary adv)) :=
+  historical_reduction_experiment_evalDistEq hash enc qs K J adv hqueries
+
 example := @SingleLayer.sourceProgram_iid_evalDistEq
 example := @SingleLayer.strongUnforgeableExp_iid_eq
 example := @SingleLayer.unforgeableExp_iid_eq
 example := @SingleLayer.sourceProgram_history_has_attempt
 example := @reduction_advantage_eq
+example := @historical_reduction_advantage_eq
+example := @adversaryToOrdinary_queryBound
 
 run_cmd Lean.Elab.Command.liftTermElabM do
   GXMSS.Test.TrustAudit.check
     #[`HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerSource,
       `HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerEncoding]
     #[(``experiment_evalDistEq,
+        `HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerEncoding),
+      (``historical_reduction_experiment_evalDistEq,
+        `HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerEncoding),
+      (``historical_reduction_advantage_eq,
+        `HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerEncoding),
+      (``candidateObservation_select,
+        `HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerEncoding),
+      (``signFromResults_single,
         `HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerEncoding),
       (``advantage_eq, `HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerEncoding),
       (``SingleLayer.sourceProgram_iid_evalDistEq,

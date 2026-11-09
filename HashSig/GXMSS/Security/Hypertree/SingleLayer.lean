@@ -10,11 +10,14 @@ public import HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerGames
 public import HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerChainCollision
 public import HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerEncoding
 public import HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerChainGames
+public import HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerChainExperiments
+public import HashSig.GXMSS.Security.Hypertree.Auxiliary.SingleLayerBound
 
 /-!
 # Depth-one hypertree source and primitive observations
 
 The source transports include raw keys, histories and complete Boolean winning measures.
-Encoding uses an explicitly translated ordinary strategy. Chain problem, challenge, prefix and
-guard maps do not assert full adaptive PRE or UD experiment correspondence.
+The named collision, encoding, preimage and both undetectability experiments retain their
+ordinary complete-tree observations. Sharp full-range interval bounds and the separate
+complete-tree relaxation use those same named primitive advantages.
 -/

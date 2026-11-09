@@ -27,7 +27,7 @@ public section
 namespace GXMSS.Hypertree.PRFDerived.Unforgeability
 open OracleComp OracleSpec ENNReal MeasureTheory
 
-variable {PP T X H M R Response Key : Type} {S : Shape}
+variable {PP T X H M R Y Response Key : Type} {S : Shape}
 
 /-- The ideal shared-cache experiment is the direct construction's strong winning measure. -/
 theorem randgenPRFReduction_ideal_strong [SampleableType H] [SampleableType Response]
@@ -150,5 +150,63 @@ theorem unforgeability_reduction_bound [SampleableType H] [SampleableType Respon
   (SyncSignatureUnforgeability.advantage_le_strongAdvantage _ _ _).trans
     (strong_unforgeability_reduction_bound hash family layout sampling interpretation retry laws
       prf qs hv hw hnonmax adv hqueries)
+
+/-- One actual PRF advantage plus the native accepted-hash global bound with the captured
+mixed retry strategies. Correlated counter trials retain their own hash primitive. -/
+@[expose] noncomputable def hashEncodingStrongUnforgeabilityBound [SampleableType H]
+    [SampleableType Response] [DecidableEq T] [DecidableEq X] [DecidableEq H]
+    [DecidableEq M] [DecidableEq R] [DecidableEq Y]
+    [DecidableEq (GXMSS.Signature R H S.h S.v)] [DecidableEq (Hypertree.Signature R H S)]
+    (hash : HashInstance PP T X H S) (family : EncodingFamily PP M R H S)
+    (layout : Layout) (sampling : RetrySampling R)
+    (interpretation : Interpretation PP H R Response)
+    (retry : RetryInterpretation layout sampling Response)
+    [DecidableEq (Domain PP M H R S layout sampling)]
+    (prf : PRFScheme Key (Domain PP M H R S layout sampling) Response)
+    (qs : ℕ) (hv : 0 < S.v) (hw : 0 < S.w)
+    (encodingHash : Security.FamilyEncodingAcceptedOutput.HashFamily PP M H R Y S)
+    (hinjective : ∀ p, Set.InjOn (encodingHash.word p)
+      {y | encodingHash.accepts p y = true})
+    (hvalue : ∀ pp q r, family.value q.1 pp q.2 r =
+      if encodingHash.accepts q.1 (encodingHash.eval pp q r) then
+        some (encodingHash.word q.1 (encodingHash.eval pp q r)) else none)
+    (adv : SchemeAdversary PP H M R S) : ℝ≥0∞ :=
+  prf.prfAdvantage (randgenPRFReduction hash family layout sampling interpretation retry adv) +
+    Hypertree.Unforgeability.hashEncodingStrongUnforgeabilityBound hash family sampling qs hv hw
+      encodingHash hinjective hvalue adv
+
+/-- The real derived scheme has one PRF term and six native hash terms under the exact local
+sampling laws and accepted-output bridge. No law about a uniformly distributed derived key is
+required: the real game uses the supplied PRF's actual key generator. -/
+theorem strong_unforgeability_reduction_bound_hashEncoding [SampleableType H]
+    [SampleableType Response] [DecidableEq T] [DecidableEq X] [DecidableEq H]
+    [DecidableEq M] [DecidableEq R] [DecidableEq Y]
+    [DecidableEq (GXMSS.Signature R H S.h S.v)] [DecidableEq (Hypertree.Signature R H S)]
+    (hash : HashInstance PP T X H S) (family : EncodingFamily PP M R H S)
+    (layout : Layout) (sampling : RetrySampling R)
+    (interpretation : Interpretation PP H R Response)
+    (retry : RetryInterpretation layout sampling Response)
+    (laws : SamplingLaws hash layout sampling interpretation retry)
+    [DecidableEq (Domain PP M H R S layout sampling)]
+    (prf : PRFScheme Key (Domain PP M H R S layout sampling) Response)
+    (qs : ℕ) (hv : 0 < S.v) (hw : 0 < S.w) (hnonmax : family.NoMaximumOutput)
+    (encodingHash : Security.FamilyEncodingAcceptedOutput.HashFamily PP M H R Y S)
+    (hinjective : ∀ p, Set.InjOn (encodingHash.word p)
+      {y | encodingHash.accepts p y = true})
+    (hvalue : ∀ pp q r, family.value q.1 pp q.2 r =
+      if encodingHash.accepts q.1 (encodingHash.eval pp q r) then
+        some (encodingHash.word q.1 (encodingHash.eval pp q r)) else none)
+    (adv : SchemeAdversary PP H M R S)
+    (hqueries : ∀ pk, (adv.forge pk).IsQueryBoundP (fun q => q.isRight = true) qs) :
+    SyncSignatureUnforgeability.strongAdvantage
+      (PRFDerived.scheme hash family layout sampling prf interpretation retry)
+      ProbCompRuntime.probComp adv ≤
+        hashEncodingStrongUnforgeabilityBound hash family layout sampling interpretation retry
+          prf qs hv hw encodingHash hinjective hvalue adv :=
+  (adaptive_strong_additive_bound hash family layout sampling interpretation retry
+    laws prf adv).trans
+    (add_le_add (le_refl _)
+      (Hypertree.Unforgeability.strong_unforgeability_reduction_bound_hashEncoding
+        hash family sampling qs hv hw hnonmax encodingHash hinjective hvalue adv hqueries))
 
 end GXMSS.Hypertree.PRFDerived.Unforgeability

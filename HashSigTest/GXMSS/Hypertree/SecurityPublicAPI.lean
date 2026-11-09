@@ -55,3 +55,45 @@ example [SampleableType H] [SampleableType Response]
     prf qs hv hw hnonmax adv hqueries
 
 end GXMSS.Hypertree.PRFDerived.Unforgeability
+
+namespace GXMSS.Hypertree.PRFDerived.Unforgeability
+
+variable {PP T X H M R Y Response RawKey : Type} {S : Shape}
+
+example [SampleableType H] [SampleableType Response]
+    [DecidableEq T] [DecidableEq X] [DecidableEq H] [DecidableEq M] [DecidableEq R]
+    [DecidableEq Y] [DecidableEq (GXMSS.Signature R H S.h S.v)]
+    [DecidableEq (Hypertree.Signature R H S)]
+    (hash : HashInstance PP T X H S) (family : EncodingFamily PP M R H S)
+    (sampling : RetrySampling R)
+    (interpretation : Interpretation PP H R Response)
+    (retry : RetryInterpretation .pairedCounter sampling Response)
+    (laws : SamplingLaws hash .pairedCounter sampling interpretation retry)
+    [DecidableEq (Domain PP M H R S .pairedCounter sampling)]
+    (sourcePRF : PRFScheme RawKey (Domain PP M H R S .pairedCounter sampling) Response)
+    (qs : ℕ) (hv : 0 < S.v) (hw : 0 < S.w) (hnonmax : family.NoMaximumOutput)
+    (encodingHash : Security.FamilyEncodingAcceptedOutput.HashFamily PP M H R Y S)
+    (hinjective : ∀ p, Set.InjOn (encodingHash.word p)
+      {y | encodingHash.accepts p y = true})
+    (hvalue : ∀ pp q r, family.value q.1 pp q.2 r =
+      if encodingHash.accepts q.1 (encodingHash.eval pp q r) then
+        some (encodingHash.word q.1 (encodingHash.eval pp q r)) else none)
+    (adv : SchemeAdversary PP H M R S)
+    (hqueries : ∀ pk, (adv.forge pk).IsQueryBoundP (fun q => q.isRight = true) qs) :
+    SyncSignatureUnforgeability.strongAdvantage
+        (PRFDerived.scheme hash family .pairedCounter sampling sourcePRF interpretation retry)
+        ProbCompRuntime.probComp adv ≤
+      hashEncodingStrongUnforgeabilityBound hash family .pairedCounter sampling interpretation
+        retry sourcePRF qs hv hw encodingHash hinjective hvalue adv ∧
+    (randgenPRFReduction hash family .pairedCounter sampling interpretation retry adv).IsQueryBoundP
+        (fun q => q.isRight = true)
+          (1 + otsCount S * ((S.v + 1) / 2) + upperCount S + qs) := by
+  constructor
+  · exact strong_unforgeability_reduction_bound_hashEncoding hash family .pairedCounter sampling
+      interpretation retry laws sourcePRF qs hv hw hnonmax encodingHash hinjective hvalue
+      adv hqueries
+  · simpa only [eagerQueryBound_pairedCounter] using
+      randgenPRFReduction_query_bound hash family .pairedCounter sampling interpretation retry
+        qs adv hqueries
+
+end GXMSS.Hypertree.PRFDerived.Unforgeability

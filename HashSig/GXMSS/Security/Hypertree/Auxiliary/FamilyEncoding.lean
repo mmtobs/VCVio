@@ -7,6 +7,7 @@ Authors: Matthias Meijers
 module
 public import HashSig.GXMSS.Hypertree.Scheme
 public import VCVio.OracleComp.SimSemantics.Append
+public import VCVio.OracleComp.SimSemantics.StateT.PreservesInv
 
 /-!
 # Mixed-coordinate encoding target collisions
@@ -178,6 +179,59 @@ theorem value_eq_some_of_mem_sampleResult (prob : Problem PP M H R S) (pp : PP)
       (StateT (Transcript M H R S) ProbComp) :=
   (QueryImpl.ofLift unifSpec ProbComp).liftTarget (StateT (Transcript M H R S) ProbComp) +
     challengeOracle prob pp
+
+/-- Every retained successful record includes its actual encoding equation. Exhausted records
+remain in the transcript and impose no successful-value equation. -/
+@[expose] def WellFormed (family : EncodingFamily PP M R H S) (pp : PP)
+    (transcript : Transcript M H R S) : Prop :=
+  ∀ entry ∈ transcript, ∀ word r, entry.result = some (word, r) →
+    family.value entry.position pp entry.message r = some word
+
+/-- The complete challenge handler preserves successful-record equations under adaptive use. -/
+theorem oracles_preserves_wellFormed (prob : Problem PP M H R S) (pp : PP) :
+    QueryImpl.PreservesInv (oracles prob pp) (WellFormed prob.family pp) := by
+  intro q transcript hformed out hout
+  cases q with
+  | inl random =>
+    have hrun : (oracles prob pp (.inl random)).run transcript =
+        (fun answer => (answer, transcript)) <$> (unifSpec.query random : ProbComp _) := by
+      rfl
+    rw [hrun] at hout
+    obtain ⟨_, _, heq⟩ := OracleComp.mem_support_map_peel _ _ hout
+    cases heq
+    exact hformed
+  | inr query =>
+    by_cases hreject : rejected prob.numRecords transcript query.1 = true
+    · have hrun := challengeOracle_run_of_rejected prob pp query transcript hreject
+      change out ∈ support ((challengeOracle prob pp query).run transcript) at hout
+      rw [hrun] at hout
+      have heq := (mem_support_pure_iff _ _).mp hout
+      subst out
+      exact hformed
+    · have heligible : rejected prob.numRecords transcript query.1 = false := by
+        simpa using hreject
+      change out ∈ support ((challengeOracle prob pp query).run transcript) at hout
+      rw [challengeOracle_run_of_eligible prob pp query transcript heligible] at hout
+      obtain ⟨answer, hanswer, heq⟩ := OracleComp.mem_support_map_peel _ _ hout
+      cases heq
+      intro entry hentry word r hresult
+      rcases List.mem_append.mp hentry with hold | hnew
+      · exact hformed entry hold word r hresult
+      · have heq : entry = (⟨query.1, query.2, answer⟩ : Record M H R S) := by
+          simpa using hnew
+        subst entry
+        exact value_eq_some_of_mem_sampleResult prob pp query (hresult ▸ hanswer)
+
+/-- Whole adaptive runs preserve every successful encoding equation, including runs that also
+contain exhausted first requests. Missing execution mass is unchanged. -/
+theorem run_preserves_wellFormed (prob : Problem PP M H R S) (pp : PP) {α : Type}
+    (program : OracleComp (unifSpec + challengeSpec M H R S) α)
+    (transcript : Transcript M H R S) (hformed : WellFormed prob.family pp transcript)
+    (out : α × Transcript M H R S)
+    (hout : out ∈ support ((simulateQ (oracles prob pp) program).run transcript)) :
+    WellFormed prob.family pp out.2 :=
+  OracleComp.simulateQ_run_preservesInv (oracles prob pp) (WellFormed prob.family pp)
+    (oracles_preserves_wellFormed prob pp) program transcript hformed out hout
 
 /-- A fully adaptive family-encoding adversary. -/
 structure Adversary (prob : Problem PP M H R S) where
