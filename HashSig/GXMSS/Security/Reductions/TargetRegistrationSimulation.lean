@@ -265,6 +265,60 @@ private theorem tcrChainFamily_run [DecidableEq T]
         exact Fin.cases rfl (fun _ => rfl) a
       · rfl
 
+/-- A fixed family of disjoint accepted target blocks composes in its exact issue order.
+Each block's native simulation is supplied at every fresh below-cap history. -/
+theorem tcrBlocks_run [DecidableEq T] {A : Type}
+    (hash : HashInstance PP T X H h w v) (targets : ℕ) (pp : PP)
+    (n k : ℕ) (issue : Fin n → TCRSetupM hash targets A) (values : Fin n → A)
+    (blocks : Fin n → List (T × X)) (hlen : ∀ a, (blocks a).length = k)
+    (hdisjoint : ∀ a b, a ≠ b → ∀ q ∈ blocks a, ∀ r ∈ blocks b, q.1 ≠ r.1)
+    (hissue : ∀ a history, history.length + k ≤ targets →
+      (∀ q ∈ history, ∀ r ∈ blocks a, q.1 ≠ r.1) →
+      ((simulateQ
+        (SM_DT_TCR_oracles (SM_DT_TCR_Problem.standalone hash.thf targets) pp)
+        ((issue a).run history)).run (history, [])) =
+        pure (((values a, history ++ blocks a), history ++ blocks a, [])))
+    (history : List (T × X)) (hcap : history.length + n * k ≤ targets)
+    (hfresh : ∀ a, ∀ q ∈ history, ∀ r ∈ blocks a, q.1 ≠ r.1) :
+    ((simulateQ
+      (SM_DT_TCR_oracles (SM_DT_TCR_Problem.standalone hash.thf targets) pp)
+      ((Fin.mOfFn n issue).run history)).run (history, [])) =
+      pure (((values, history ++ (List.ofFn blocks).flatten),
+        history ++ (List.ofFn blocks).flatten, [])) := by
+  induction n generalizing history with
+  | zero =>
+      simp only [Fin.mOfFn, StateT.run_pure, simulateQ_pure,
+        List.ofFn_zero, List.flatten_nil, List.append_nil]
+      congr
+      funext a
+      exact Fin.elim0 a
+  | succ n ih =>
+      have hfirstCap : history.length + k ≤ targets := by
+        simp only [Nat.succ_mul] at hcap
+        omega
+      have htailCap : (history ++ blocks 0).length + n * k ≤ targets := by
+        simpa [hlen, Nat.succ_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+          using hcap
+      have htailFresh : ∀ a : Fin n, ∀ q ∈ history ++ blocks 0,
+          ∀ r ∈ blocks a.succ, q.1 ≠ r.1 := by
+        intro a q hq r hr
+        rcases List.mem_append.mp hq with hq | hq
+        · exact hfresh a.succ q hq r hr
+        · exact hdisjoint 0 a.succ (Fin.succ_ne_zero a).symm q hq r hr
+      rw [Fin.mOfFn]
+      simp only [StateT.run_bind, simulateQ_bind]
+      rw [hissue 0 history hfirstCap (hfresh 0)]
+      simp only [pure_bind]
+      rw [ih (fun a => issue a.succ) (fun a => values a.succ)
+        (fun a => blocks a.succ) (fun a => hlen a.succ)
+        (fun a b hab => hdisjoint a.succ b.succ (fun heq => hab (Fin.succ_inj.mp heq)))
+        (fun a => hissue a.succ) (history ++ blocks 0) htailCap htailFresh]
+      simp only [List.append_assoc, StateT.run_pure, simulateQ_pure, bind_pure_comp,
+        map_pure, List.ofFn_succ, List.flatten_cons, PFunctor.FreeM.pure_inj,
+        Prod.mk.injEq, and_true]
+      funext a
+      exact Fin.cases rfl (fun _ => rfl) a
+
 private theorem tcrEpochFamily_run [DecidableEq T]
     (hash : HashInstance PP T X H h w v) (targets : ℕ) (pp : PP)
     (starts : Epoch h → Fin v → H) (fallback : H)
@@ -284,57 +338,32 @@ private theorem tcrEpochFamily_run [DecidableEq T]
         (List.ofFn fun i => chainTargets hash pp (epochs a) i (starts (epochs a) i)
           (2 ^ w - 1) (by omega)).flatten).flatten
       pure ((values, history ++ registered), history ++ registered, []) := by
-  induction n generalizing history with
-  | zero =>
-      simp only [Fin.mOfFn, StateT.run_pure, simulateQ_pure,
-        List.ofFn_zero, List.flatten_nil, List.append_nil]
-      congr
-      funext a
-      exact Fin.elim0 a
-  | succ n ih =>
-      let firstTargets := (List.ofFn fun i : Fin v =>
-        chainTargets hash pp (epochs 0) i (starts (epochs 0) i)
-          (2 ^ w - 1) (by omega)).flatten
-      have hfirstCap : history.length + v * (2 ^ w - 1) ≤ targets := by
-        simp only [Nat.succ_mul, Nat.add_mul] at hcap
-        omega
-      have hfirstFresh : ∀ i : Fin v, ∀ j : Fin (2 ^ w - 1), ∀ q ∈ history,
-          q.1 ≠ hash.chainTweak (epochs 0, i, ⟨j.val, by omega⟩) := hfresh 0
-      have htailEpochs : Function.Injective (fun a : Fin n => epochs a.succ) :=
-        hepochs.comp (Fin.succ_injective n)
-      have htailCap : (history ++ firstTargets).length + n * v * (2 ^ w - 1) ≤ targets := by
-        simpa [firstTargets, List.length_flatten, List.sum_ofFn, Nat.succ_mul,
-          Nat.add_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hcap
-      have htailFresh : ∀ a : Fin n, ∀ i : Fin v, ∀ j : Fin (2 ^ w - 1),
-          ∀ q ∈ history ++ firstTargets,
-          q.1 ≠ hash.chainTweak (epochs a.succ, i, ⟨j.val, by omega⟩) := by
-        intro a i j q hq
-        simp only [List.mem_append] at hq
-        rcases hq with hq | hq
-        · exact hfresh a.succ i j q hq
-        · simp only [firstTargets, List.mem_flatten, List.mem_ofFn] at hq
-          rcases hq with ⟨chain, ⟨i₀, rfl⟩, hq⟩
-          simp only [chainTargets, List.mem_ofFn] at hq
-          rcases hq with ⟨k, rfl⟩
-          intro heq
-          have hargs := hash.chainTweak.injective heq
-          have hep : epochs 0 = epochs a.succ := congrArg Prod.fst hargs
-          exact Fin.succ_ne_zero a (hepochs hep).symm
-      rw [Fin.mOfFn]
-      simp only [StateT.run_bind, simulateQ_bind]
-      rw [tcrChainFamily_run hash targets pp (epochs 0) (starts (epochs 0)) fallback v
-        (fun i => i) Function.injective_id history hfirstCap hfirstFresh]
-      simp only [pure_bind]
-      rw [ih (fun a => epochs a.succ) htailEpochs (history ++ firstTargets)
-        htailCap htailFresh]
-      simp only [List.append_assoc, StateT.run_pure, simulateQ_pure, bind_pure_comp,
-        map_pure, List.ofFn_succ, List.flatten_cons, PFunctor.FreeM.pure_inj,
-        Prod.mk.injEq, List.append_cancel_left_eq, List.append_cancel_right_eq,
-        and_true, and_self_right]
-      constructor
-      · funext a
-        exact Fin.cases rfl (fun _ => rfl) a
-      · rfl
+  let blocks := fun a : Fin n => (List.ofFn fun i : Fin v =>
+    chainTargets hash pp (epochs a) i (starts (epochs a) i) (2 ^ w - 1) le_rfl).flatten
+  apply tcrBlocks_run hash targets pp n (v * (2 ^ w - 1)) _ _ blocks
+  · intro a
+    simp [blocks, List.length_flatten, List.sum_ofFn]
+  · intro a b hab q hq r hr heq
+    simp only [blocks, List.mem_flatten, List.mem_ofFn] at hq hr
+    obtain ⟨_, ⟨i, rfl⟩, hq⟩ := hq
+    obtain ⟨_, ⟨j, rfl⟩, hr⟩ := hr
+    obtain ⟨s, rfl⟩ := List.mem_ofFn.mp hq
+    obtain ⟨t, rfl⟩ := List.mem_ofFn.mp hr
+    exact hab (hepochs (congrArg Prod.fst (hash.chainTweak.injective heq)))
+  · intro a previous hprevious hfreshPrevious
+    apply tcrChainFamily_run hash targets pp (epochs a) (starts (epochs a)) fallback v
+      (fun i => i) Function.injective_id previous hprevious
+    intro i j q hq
+    exact hfreshPrevious q hq
+      (hash.chainTweak (epochs a, i, j),
+        hash.digestInput (hash.chain pp (epochs a) i 0 j.val (starts (epochs a) i)))
+      (by simp [blocks, chainTargets])
+  · simpa only [Nat.mul_assoc] using hcap
+  · intro a q hq r hr
+    simp only [blocks, List.mem_flatten, List.mem_ofFn] at hr
+    obtain ⟨_, ⟨i, rfl⟩, hr⟩ := hr
+    obtain ⟨j, rfl⟩ := List.mem_ofFn.mp hr
+    exact hfresh a i j q hq
 
 /-- The pure endpoint family returned by an accepted honest setup is exactly the ordinary GXMSS
 endpoint function. -/
@@ -1214,5 +1243,97 @@ theorem merkleOpeningTarget_registeredIndex_spec [DecidableEq T] [DecidableEq X]
       registeredIndex history target.1 target.2 < capacity := by
   exact registeredIndex_spec _ _ _ _
     (merkleOpeningTarget_mem_registeredHistory hash pp starts endpoints ep target hmem) hcap
+
+/-- Flattening fresh component blocks preserves global tweak freshness in their issue order. -/
+theorem targets_flatten_ofFn_tweaks_nodup {n : ℕ} (blocks : Fin n → List (T × X))
+    (hnodup : ∀ i, ((blocks i).map Prod.fst).Nodup)
+    (hdisjoint : ∀ i j, i ≠ j → ∀ q ∈ blocks i, ∀ r ∈ blocks j, q.1 ≠ r.1) :
+    (((List.ofFn blocks).flatten).map Prod.fst).Nodup := by
+  rw [List.map_flatten, List.map_ofFn, List.nodup_flatten]
+  constructor
+  · intro block hblock
+    obtain ⟨i, rfl⟩ := List.mem_ofFn.mp hblock
+    exact hnodup i
+  · rw [List.pairwise_ofFn]
+    intro i j hij
+    rw [List.disjoint_left]
+    intro t hti htj
+    obtain ⟨q, hq, hqt⟩ := List.mem_map.mp hti
+    obtain ⟨r, hr, hrt⟩ := List.mem_map.mp htj
+    exact hdisjoint i j (ne_of_lt hij) q hq r hr (hqt.trans hrt.symm)
+
+/-- A target in endpoint setup has the exact epoch, chain and positive-step tweak. -/
+theorem endpointTarget_tweak (hash : HashInstance PP T X H h w v) (pp : PP)
+    (starts : Epoch h → Fin v → H) {q : T × X}
+    (hq : q ∈ endpointTargets hash pp starts) :
+    ∃ ep i j, q.1 = hash.chainTweak (ep, i, j) := by
+  simp only [endpointTargets, List.mem_flatten, List.mem_ofFn] at hq
+  obtain ⟨_, ⟨ep, rfl⟩, hq⟩ := hq
+  simp only [List.mem_flatten, List.mem_ofFn] at hq
+  obtain ⟨_, ⟨i, rfl⟩, hq⟩ := hq
+  obtain ⟨j, rfl⟩ := List.mem_ofFn.mp hq
+  exact ⟨ep, i, ⟨j.val, j.isLt⟩, rfl⟩
+
+/-- Full endpoint setup visits every chain tweak at most once. -/
+theorem endpointTargets_tweaks_nodup (hash : HashInstance PP T X H h w v) (pp : PP)
+    (starts : Epoch h → Fin v → H) :
+    ((endpointTargets hash pp starts).map Prod.fst).Nodup := by
+  have hchain (ep : Epoch h) (i : Fin v) :
+      ((chainTargets hash pp ep i (starts ep i) (2 ^ w - 1) le_rfl).map Prod.fst).Nodup := by
+    rw [chainTargets, List.map_ofFn, List.nodup_ofFn]
+    intro j k hjk
+    exact Fin.ext (congrArg (fun c => c.2.2.val) (hash.chainTweak.injective hjk))
+  have hfamily (ep : Epoch h) :
+      (((List.ofFn fun i : Fin v =>
+        chainTargets hash pp ep i (starts ep i) (2 ^ w - 1) le_rfl).flatten).map
+          Prod.fst).Nodup := by
+    apply targets_flatten_ofFn_tweaks_nodup _ (hchain ep)
+    intro i j hij q hq r hr heq
+    obtain ⟨a, rfl⟩ := List.mem_ofFn.mp hq
+    obtain ⟨b, rfl⟩ := List.mem_ofFn.mp hr
+    exact hij (congrArg (fun c => c.2.1) (hash.chainTweak.injective heq))
+  apply targets_flatten_ofFn_tweaks_nodup _ hfamily
+  intro ep eq hepeq q hq r hr heq
+  simp only [List.mem_flatten, List.mem_ofFn] at hq hr
+  obtain ⟨_, ⟨i, rfl⟩, hq⟩ := hq
+  obtain ⟨_, ⟨j, rfl⟩, hr⟩ := hr
+  obtain ⟨a, rfl⟩ := List.mem_ofFn.mp hq
+  obtain ⟨b, rfl⟩ := List.mem_ofFn.mp hr
+  exact hepeq (congrArg Prod.fst (hash.chainTweak.injective heq))
+
+/-- A full-tree target retains a legal finite rectangle tweak. -/
+theorem merkleTarget_tweak (hash : HashInstance PP T X H h w v) (pp : PP)
+    (endpoints : Epoch h → Fin v → H) {q : T × X}
+    (hq : q ∈ merkleTargets hash pp endpoints) :
+    ∃ level index, q.1 = hash.treeTweak (level, index) := by
+  have htweak : q.1 ∈ (merkleTargets hash pp endpoints).map Prod.fst :=
+    List.mem_map.mpr ⟨q, hq, rfl⟩
+  rw [merkleTargets, merkleTargetRun_tweaks] at htweak
+  obtain ⟨level, index, heq, _, _, _⟩ :=
+    mem_merkleTweaks_bounds hash h 0 le_rfl (by simp) htweak
+  exact ⟨level, index, heq⟩
+
+/-- Endpoint registration also composes with a preceding disjoint authoritative history. -/
+theorem tcrEndpoints_run [DecidableEq T]
+    (hash : HashInstance PP T X H h w v) (targets : ℕ) (pp : PP)
+    (starts : Epoch h → Fin v → H) (fallback : H) (history : List (T × X))
+    (hcap : history.length + (2 ^ h) * v * (2 ^ w - 1) ≤ targets)
+    (hfresh : ∀ ep i j, ∀ q ∈ history, q.1 ≠ hash.chainTweak (ep, i, j)) :
+    ((simulateQ
+      (SM_DT_TCR_oracles (SM_DT_TCR_Problem.standalone hash.thf targets) pp)
+      ((tcrEndpoints hash targets starts fallback).run history)).run (history, [])) =
+      pure (((GXMSS.endpoints hash pp starts, history ++ endpointTargets hash pp starts),
+        history ++ endpointTargets hash pp starts, [])) := by
+  rw [← endpointFamily_eq hash pp starts]
+  simpa [tcrEndpoints, endpointTargets] using
+    (tcrEpochFamily_run hash targets pp starts fallback (2 ^ h) (fun ep => ep)
+      Function.injective_id history hcap hfresh)
+
+/-- A nonrepeating issue schedule is fresh at each accepted prefix. -/
+theorem tweakFresh_of_target_prefix (history before after : List (T × X)) (target : T × X)
+    (hdisjoint : ∀ q ∈ history, ∀ r ∈ before ++ target :: after, q.1 ≠ r.1)
+    (hnodup : ((before ++ target :: after).map Prod.fst).Nodup) :
+    TweakFresh Prod.fst (history ++ before) [] target.1 :=
+  tweakFresh_after_prefix history before after target hdisjoint hnodup
 
 end GXMSS.Reductions

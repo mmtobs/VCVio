@@ -100,24 +100,9 @@ theorem jointChainAdvantage_eq_gameFourAdvantage_div_guess_card
         (fun b => b = true)).symm.trans (prEvent_eq_evalDist_singleton _ true)
     rw [hobs] at hprob
     simpa only [c, map_eq_bind_pure_comp, Function.comp_def] using hprob
-  have hae : ∀ᵐ out ∂𝒟[source],
-      𝒟[do
-        let guess ← ($ᵗ (Guess h w v) : ProbComp (Guess h w v))
-        return jointChainObservation hash enc K (guess, out)] {true} =
-        if gameFourObservation hash enc K out = true then c else 0 :=
-    evalDist.ae_of_forall_mem_support source _ MeasurableSet.of_discrete hconditional
   unfold jointChainAdvantage jointChainOutputMeasure
-  rw [ProbCompRuntime.probComp_evalDist, hswap, evalDist_bind_of_discrete,
-    MeasureTheory.Measure.bind_apply (measurableSet_singleton true)
-      Measurable.of_discrete.aemeasurable, MeasureTheory.lintegral_congr_ae hae]
-  have hfun : (fun out : Result PP H M R h v =>
-      if gameFourObservation hash enc K out = true then c else 0) =
-      ({out | gameFourObservation hash enc K out = true} : Set _).indicator
-        (fun _ => c) := by
-    funext out
-    by_cases h : gameFourObservation hash enc K out = true <;> simp [h]
-  rw [hfun, MeasureTheory.lintegral_indicator_const MeasurableSet.of_discrete,
-    ← hmass]
+  rw [ProbCompRuntime.probComp_evalDist, hswap,
+    ReturnedMass.bind_true_mass_eq_mul_event source _ _ c hconditional, ← hmass]
 /-- Exact finite-selector accounting for all returned Game 4 winning mass. -/
 theorem gameFourAdvantage_eq_guess_card_mul_jointChainAdvantage
     [SampleableType H] [SampleableType R]
@@ -247,13 +232,7 @@ private theorem context_fixed_selector_filtered_hybrid_telescope
     intro x
     simp only [event]
     rw [hstep starts x]
-  have hsum : (∑ j ∈ Finset.range g, ideal j) =
-      ∑ j ∈ Finset.range g, real (j + 1) := by
-    apply Finset.sum_congr rfl
-    intro j hj
-    exact hnext j (Finset.mem_range.mp hj)
-  rw [hsum]
-  exact finite_chain_hybrid_telescope real g
+  exact HybridTelescope.finite_hybrid_telescope_of_step real ideal g hnext
 private theorem fixed_selector_filtered_hybrid_telescope
     [SampleableType H] [SampleableType R]
     [DecidableEq H] [DecidableEq M] [DecidableEq R]
@@ -438,18 +417,7 @@ private theorem bind_true_mass_telescope {α : Type} [MeasurableSpace α]
         𝒟[terminal a] {true} + (n : ℝ≥0∞) * 𝒟[real a] {true}) :
     𝒟[draw >>= source] {true} + (n : ℝ≥0∞) * 𝒟[draw >>= ideal] {true} =
       𝒟[draw >>= terminal] {true} + (n : ℝ≥0∞) * 𝒟[draw >>= real] {true} := by
-  simp only [evalDist_bind_of_discrete,
-    MeasureTheory.Measure.bind_apply (measurableSet_singleton true)
-      Measurable.of_discrete.aemeasurable]
-  rw [← MeasureTheory.lintegral_const_mul _ (Measurable.of_discrete :
-      Measurable fun a : α => 𝒟[ideal a] {true}),
-    ← MeasureTheory.lintegral_add_left (Measurable.of_discrete :
-      Measurable fun a : α => 𝒟[source a] {true})]
-  rw [← MeasureTheory.lintegral_const_mul _ (Measurable.of_discrete :
-      Measurable fun a : α => 𝒟[real a] {true}),
-    ← MeasureTheory.lintegral_add_left (Measurable.of_discrete :
-      Measurable fun a : α => 𝒟[terminal a] {true})]
-  exact MeasureTheory.lintegral_congr fun a => h a
+  exact HybridTelescope.bind_true_mass_telescope draw source ideal terminal real n h
 private theorem context_fixed_selector_returned_measure_telescope
     [SampleableType H] [SampleableType R]
     [NeZero (2 ^ w - 1)]

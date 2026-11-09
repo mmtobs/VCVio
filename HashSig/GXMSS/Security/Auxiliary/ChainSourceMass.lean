@@ -5,6 +5,8 @@ Authors: Matthias Meijers
 -/
 
 module
+public import HashSig.GXMSS.Security.Auxiliary.ReturnedMass
+public import HashSig.GXMSS.Security.Auxiliary.HybridTelescope
 public import HashSig.GXMSS.Completeness
 import all HashSig.GXMSS.Completeness
 public import HashSig.GXMSS.Security.Auxiliary.ChainSplicing
@@ -63,19 +65,11 @@ theorem jointChainGuess_probability [SampleableType H] [SampleableType R]
       jointChainObservation hash enc K (guess, out) = true] =
       if gameFourObservation hash enc K out = true then
         (Fintype.card (Guess h w v) : ℝ≥0∞)⁻¹ else 0 := by
-  by_cases hwin : gameFourObservation hash enc K out = true
-  · obtain ⟨target, htarget⟩ :=
-      jointChainObservation_singleton hash enc K adv hnonmax out hout hwin
-    simp only [hwin, ite_true]
-    rw [prEvent_congr _ _ _ htarget]
-    exact SampleableType.prEvent_uniformSample_eq_singleton target
-  · have hfalse : gameFourObservation hash enc K out = false := by
-      cases h : gameFourObservation hash enc K out <;> simp_all
-    simp only [hfalse, Bool.false_eq_true, ite_false]
-    apply (SampleableType.prEvent_uniformSample_eq_zero_iff
-      (fun guess : Guess h w v => jointChainObservation hash enc K (guess, out) = true)).2
-    intro guess hguess
-    exact hwin (jointChainObservation_implies_gameFour hash enc K guess out hguess)
+  apply ReturnedMass.uniform_selector_probability
+  · intro hwin
+    exact jointChainObservation_singleton hash enc K adv hnonmax out hout hwin
+  · intro guess hguess
+    exact jointChainObservation_implies_gameFour hash enc K guess out hguess
 /-- Conditional on one returned source result, the actual uniform Game 5 guess passes with
 exactly inverse-cardinality mass when that result is a successful Game 4 win. -/
 theorem gameFiveGuess_probability [SampleableType H] [SampleableType R]
@@ -90,23 +84,15 @@ theorem gameFiveGuess_probability [SampleableType H] [SampleableType R]
       gameFiveObservation hash enc K (guess, out) = true] =
       if successfulGameFourObservation hash enc K out = true then
         (Fintype.card (Guess h w v) : ℝ≥0∞)⁻¹ else 0 := by
-  by_cases hwin : successfulGameFourObservation hash enc K out = true
-  · obtain ⟨msg, sig, honestWord, forgedWord, i, hsource, hhonest, hforged, hi⟩ :=
+  apply ReturnedMass.uniform_selector_probability
+  · intro hwin
+    obtain ⟨msg, sig, honestWord, forgedWord, i, hsource, hhonest, hforged, hi⟩ :=
       successfulGameFour_designated_coordinate hash enc K adv out hout hwin
-    obtain ⟨target, htarget⟩ := gameFiveObservation_successful_singleton
+    exact gameFiveObservation_successful_singleton
       hash enc K out msg sig honestWord forgedWord i hsource hhonest hforged hi
       (by simpa [successfulGameFourObservation, hsource] using hwin)
-    simp only [hwin, ite_true]
-    rw [prEvent_congr _ _ _ htarget]
-    exact SampleableType.prEvent_uniformSample_eq_singleton target
-  · have hfalse : successfulGameFourObservation hash enc K out = false := by
-      cases h : successfulGameFourObservation hash enc K out <;> simp_all
-    simp only [hfalse, Bool.false_eq_true, ite_false]
-    apply (SampleableType.prEvent_uniformSample_eq_zero_iff
-      (fun guess : Guess h w v => gameFiveObservation hash enc K (guess, out) = true)).2
-    intro guess hguess
-    exact hwin (gameFiveObservation_implies_successfulGameFour
-      hash enc K guess out hguess)
+  · intro guess hguess
+    exact gameFiveObservation_implies_successfulGameFour hash enc K guess out hguess
 /-- The actual Game 5 native returned winning mass is exactly the successful-record Game 4
 mass divided by the finite guess count. The source program's unreturned mass is unchanged. -/
 theorem gameFiveAdvantage_eq_successfulGameFourMass_div_guess_card
@@ -154,24 +140,9 @@ theorem gameFiveAdvantage_eq_successfulGameFourMass_div_guess_card
         (fun b => b = true)).symm.trans (prEvent_eq_evalDist_singleton _ true)
     rw [hobs] at hprob
     simpa only [c, map_eq_bind_pure_comp, Function.comp_def] using hprob
-  have hae : ∀ᵐ out ∂𝒟[source],
-      𝒟[do
-        let guess ← ($ᵗ (Guess h w v) : ProbComp (Guess h w v))
-        return gameFiveObservation hash enc K (guess, out)] {true} =
-        if successfulGameFourObservation hash enc K out = true then c else 0 :=
-    evalDist.ae_of_forall_mem_support source _ MeasurableSet.of_discrete hconditional
   unfold gameFiveAdvantage gameFiveOutputMeasure
-  rw [ProbCompRuntime.probComp_evalDist, hswap, evalDist_bind_of_discrete,
-    MeasureTheory.Measure.bind_apply (measurableSet_singleton true)
-      Measurable.of_discrete.aemeasurable, MeasureTheory.lintegral_congr_ae hae]
-  have hfun : (fun out : Result PP H M R h v =>
-      if successfulGameFourObservation hash enc K out = true then c else 0) =
-      ({out | successfulGameFourObservation hash enc K out = true} : Set _).indicator
-        (fun _ => c) := by
-    funext out
-    by_cases h : successfulGameFourObservation hash enc K out = true <;> simp [h]
-  rw [hfun, MeasureTheory.lintegral_indicator_const MeasurableSet.of_discrete,
-    ← hmass]
+  rw [ProbCompRuntime.probComp_evalDist, hswap,
+    ReturnedMass.bind_true_mass_eq_mul_event source _ _ c hconditional, ← hmass]
 /-- On successful returned Game 4 records, the exact finite guess factor recovers the native
 Game 4 mass from the actual Game 5 returned winning mass. -/
 theorem successfulGameFourMass_eq_guess_card_mul_gameFiveAdvantage
@@ -309,102 +280,6 @@ private theorem sampleStarts_uniform_measure [SampleableType H]
     (Fin.mOfFn v (fun _ => ($ᵗ H : ProbComp H)))
     (evalDist_mOfFn_const_uniform v ($ᵗ H)
       SampleableType.evalDist_uniformSample)
-/-- Refreshing one independent start coordinate preserves the complete start-array measure. -/
-private theorem sampleStarts_coordinate_resampling [SampleableType H]
-    (ep : Epoch h) (i : Fin v) :
-    let : MeasurableSpace H := ⊤
-    𝒟[do
-      let x ← ($ᵗ H : ProbComp H)
-      let starts ← GXMSS.sampleStarts H h v
-      return Function.update starts ep (Function.update (starts ep) i x)] =
-      𝒟[GXMSS.sampleStarts H h v] := by
-  classical
-  let : MeasurableSpace H := ⊤
-  let Flat := Epoch h × Fin v → H
-  let Nested := Epoch h → Fin v → H
-  let e : Flat ≃ Nested := Equiv.curry (Epoch h) (Fin v) H
-  have hvalue : 𝒟[($ᵗ H : ProbComp H)] = ProbabilityTheory.uniformOn Set.univ :=
-    SampleableType.evalDist_uniformSample
-  have hflat : 𝒟[($ᵗ Flat : ProbComp Flat)] =
-      ProbabilityTheory.uniformOn Set.univ :=
-    SampleableType.evalDist_uniformSample
-  have hnested : 𝒟[GXMSS.sampleStarts H h v] =
-      ProbabilityTheory.uniformOn Set.univ := sampleStarts_uniform_measure
-  have hmap : 𝒟[e <$> ($ᵗ Flat : ProbComp Flat)] =
-      𝒟[GXMSS.sampleStarts H h v] := by
-    rw [evalDist_map_of_discrete, hflat,
-      ProbabilityTheory.uniformOn_univ_map_equiv e, hnested]
-  have hupdate : ∀ (g : Flat) (x : H),
-      e (Function.update g (ep, i) x) =
-        Function.update (e g) ep (Function.update (e g ep) i x) := by
-    intro g x
-    funext ep' i'
-    change Function.update g (ep, i) x (ep', i') =
-      Function.update (e g) ep (Function.update (e g ep) i x) ep' i'
-    by_cases hep : ep' = ep
-    · subst ep'
-      by_cases hi : i' = i
-      · subst i'; simp [Function.update]
-      · simp [Function.update, hi]
-        rfl
-    · simp [Function.update, hep]
-      rfl
-  have hflatUpdate := evalDist_bind_bind_update
-    ($ᵗ H : ProbComp H) ($ᵗ Flat : ProbComp Flat)
-    hvalue hflat (ep, i) (fun g => pure (e g))
-  have hinner (x : H) :
-      𝒟[GXMSS.sampleStarts H h v >>= fun starts =>
-        pure (Function.update starts ep (Function.update (starts ep) i x))] =
-      𝒟[($ᵗ Flat : ProbComp Flat) >>= fun g =>
-        pure (e (Function.update g (ep, i) x))] := by
-    have hcross := evalDist_bind_bijective_uniform_cross
-      ($ᵗ Flat : ProbComp Flat) (GXMSS.sampleStarts H h v)
-      hflat hnested e e.bijective
-      (fun starts => pure
-        (Function.update starts ep (Function.update (starts ep) i x)))
-    simp_rw [← hupdate] at hcross
-    exact hcross.symm
-  calc
-    𝒟[do
-      let x ← ($ᵗ H : ProbComp H)
-      let starts ← GXMSS.sampleStarts H h v
-      return Function.update starts ep (Function.update (starts ep) i x)]
-        = 𝒟[do
-          let x ← ($ᵗ H : ProbComp H)
-          let g ← ($ᵗ Flat : ProbComp Flat)
-          return e (Function.update g (ep, i) x)] := by
-            rw [evalDist_bind_of_discrete, evalDist_bind_of_discrete]
-            simp_rw [hinner]
-    _ = 𝒟[($ᵗ Flat : ProbComp Flat) >>= fun g => pure (e g)] := hflatUpdate
-    _ = 𝒟[GXMSS.sampleStarts H h v] := by
-      rw [map_eq_bind_pure_comp] at hmap
-      exact hmap
-/-- The refreshed start law remains equal under any returned continuation, including loss. -/
-private theorem sampleStarts_coordinate_resampling_bind [SampleableType H]
-    {α : Type} [MeasurableSpace α]
-    (ep : Epoch h) (i : Fin v)
-    (f : (Epoch h → Fin v → H) → ProbComp α) :
-    let : MeasurableSpace H := ⊤
-    𝒟[do
-      let x ← ($ᵗ H : ProbComp H)
-      let starts ← GXMSS.sampleStarts H h v
-      f (Function.update starts ep (Function.update (starts ep) i x))] =
-    𝒟[GXMSS.sampleStarts H h v >>= f] := by
-  classical
-  let : MeasurableSpace H := ⊤
-  have hrefresh := sampleStarts_coordinate_resampling (H := H) ep i
-  have hprogram :
-      (do
-        let x ← ($ᵗ H : ProbComp H)
-        let starts ← GXMSS.sampleStarts H h v
-        f (Function.update starts ep (Function.update (starts ep) i x))) =
-      (do
-        let x ← ($ᵗ H : ProbComp H)
-        let starts ← GXMSS.sampleStarts H h v
-        pure (Function.update starts ep (Function.update (starts ep) i x))) >>= f := by
-    simp only [bind_assoc, pure_bind]
-  rw [hprogram, evalDist_bind_of_discrete, hrefresh,
-    ← evalDist_bind_of_discrete]
 /-- Pointwise equality of returned event masses integrates over a common discrete draw. -/
 private theorem evalDist_bind_event_eq_of_discrete
     {α β : Type} [MeasurableSpace α] [DiscreteMeasurableSpace α]
@@ -413,11 +288,7 @@ private theorem evalDist_bind_event_eq_of_discrete
     (event : Set β) (hevent : MeasurableSet event)
     (hfg : ∀ a, 𝒟[f a] event = 𝒟[g a] event) :
     𝒟[mx >>= f] event = 𝒟[mx >>= g] event := by
-  apply le_antisymm
-  · exact evalDist_bind_apply_mono_of_discrete mx f g hevent
-      (fun a => (hfg a).le)
-  · exact evalDist_bind_apply_mono_of_discrete mx g f hevent
-      (fun a => (hfg a).ge)
+  exact ReturnedMass.evalDist_bind_event_eq_of_discrete mx f g event hevent hfg
 /-- A position-zero splice never reads its old selected start at any positive chain position. -/
 private theorem splicedChainValue_zero_start_update
     (hash : HashInstance PP T X H h w v) (pp : PP)
@@ -430,21 +301,10 @@ private theorem splicedChainValue_zero_start_update
         (Function.update (starts (guessedEpoch guess)) (guessedChain guess) x))
       ep i position =
     splicedChainValue hash pp guess answer starts ep i position := by
-  unfold splicedChainValue
-  by_cases htarget : ep = guessedEpoch guess ∧ i = guessedChain guess
-  · have hnot : ¬position < (guessedPosition guess).val + 1 := by omega
-    simp [htarget, hnot]
-  · have hstart :
-        Function.update starts (guessedEpoch guess)
-          (Function.update (starts (guessedEpoch guess)) (guessedChain guess) x)
-          ep i = starts ep i := by
-      by_cases he : ep = guessedEpoch guess
-      · subst ep
-        have hi : i ≠ guessedChain guess := by
-          intro hi; exact htarget ⟨rfl, hi⟩
-        simp [Function.update, hi]
-      · simp [Function.update, he]
-    simp [htarget, hstart]
+  simpa only [splicedChainValue, hzero, chainFamily] using
+    ChainContinuation.spliceValue_zero_start_update (chainFamily hash pp)
+      (guessedEpoch guess) (guessedChain guess) answer starts x ep i position
+      (fun _ _ => hpos)
 /-- Updating the old selected start leaves the endpoint array of a zero splice fixed. -/
 private theorem splicedEndpoints_zero_start_update
     (hash : HashInstance PP T X H h w v) (pp : PP)
@@ -475,29 +335,17 @@ private theorem contextSplicedSignatureOfWord_zero_start_update
           (Function.update (starts (guessedEpoch guess)) (guessedChain guess) x))) ep wr =
     contextSplicedSignatureOfWord hash ctx pp guess answer starts
       (splicedEndpoints hash pp guess answer starts) ep wr := by
-  rw [splicedEndpoints_zero_start_update hash pp guess answer starts x hzero hn]
-  have hots : (fun i => splicedChainValue hash pp guess answer
-      (Function.update starts (guessedEpoch guess)
-        (Function.update (starts (guessedEpoch guess)) (guessedChain guess) x))
-      ep i (wr.1 i)) =
-      (fun i => splicedChainValue hash pp guess answer starts ep i (wr.1 i)) := by
-    funext i
-    by_cases ht : ep = guessedEpoch guess ∧ i = guessedChain guess
-    · exact splicedChainValue_zero_start_update hash pp guess answer starts x ep i
-        (wr.1 i) hzero (by simpa only [ht.2] using hword ht.1)
-    · unfold splicedChainValue
-      have hstart :
-          Function.update starts (guessedEpoch guess)
-            (Function.update (starts (guessedEpoch guess)) (guessedChain guess) x)
-            ep i = starts ep i := by
-        by_cases he : ep = guessedEpoch guess
-        · subst ep
-          have hi : i ≠ guessedChain guess := by
-            intro hi; exact ht ⟨rfl, hi⟩
-          simp [Function.update, hi]
-        · simp [Function.update, he]
-      simp [ht, hstart]
-  simp only [contextSplicedSignatureOfWord, hots]
+  have h := (contextWordContinuation ctx pp ep wr).materialize_zero_start_update
+    (chainFamily hash pp) (2 ^ w - 1) (guessedEpoch guess) (guessedChain guess)
+    answer starts x () hn (by
+      intro c i position hread he hi
+      have hep : ep = guessedEpoch guess := hread.1.symm.trans he
+      have hbound := hword hep
+      have hposition : position = (wr.1 (guessedChain guess)).val := by
+        simpa only [hi] using hread.2
+      omega)
+  simpa only [contextWordContinuation, contextSplicedSignatureOfWord, splicedChainValue,
+    splicedEndpoints, hzero, chainFamily] using h
 /-- At a zero splice the filtered signing handler is independent of the old selected start. -/
 private theorem contextFilteredSplicedSigningOracle_zero_start_update
     [SampleableType R]
@@ -703,61 +551,12 @@ private theorem context_filteredZero_real_source_mass
       (fun result =>
           observe result.pk result.sk.endpoints result.forgery result.history)) <$>
       runContextFilteredSpliced hash enc K ctx adv pp selector splice answer starts
-  have hpoint (x : H) (starts : Epoch h → Fin v → H) :
-      𝒟[F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-        ((Function.update starts (guessedEpoch splice)
-          (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))
-          (guessedEpoch splice) (guessedChain splice)))
-        (Function.update starts (guessedEpoch splice)
-          (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))]
-        {true} =
-      𝒟[F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1 x) starts]
-        {true} := by
-    simp only [Function.update_self]
-    exact runContextFilteredSpliced_zero_start_update_mass hash enc K ctx adv pp selector splice
-      (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1 x)
-      starts x observe hzero hn hepoch hchain
-  have hresample := sampleStarts_coordinate_resampling_bind
-    (H := H) (α := Bool) (guessedEpoch splice) (guessedChain splice)
-    (fun starts => F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-      (starts (guessedEpoch splice) (guessedChain splice))) starts)
-  change 𝒟[($ᵗ H : ProbComp H) >>= fun x =>
-    GXMSS.sampleStarts H h v >>= fun starts =>
-      F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-        ((Function.update starts (guessedEpoch splice)
-          (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))
-          (guessedEpoch splice) (guessedChain splice)))
-        (Function.update starts (guessedEpoch splice)
-          (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))] =
-    𝒟[GXMSS.sampleStarts H h v >>= fun starts =>
-      F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-        (starts (guessedEpoch splice) (guessedChain splice))) starts] at hresample
-  have hcouple : 𝒟[GXMSS.sampleStarts H h v >>= fun starts =>
-      F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-        (starts (guessedEpoch splice) (guessedChain splice))) starts] {true} =
-    𝒟[($ᵗ H : ProbComp H) >>= fun x =>
-      GXMSS.sampleStarts H h v >>= fun starts =>
-        F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1 x) starts]
-      {true} := by
-   calc
-    _ = 𝒟[($ᵗ H : ProbComp H) >>= fun x =>
-      GXMSS.sampleStarts H h v >>= fun starts =>
-        F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-          ((Function.update starts (guessedEpoch splice)
-            (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))
-            (guessedEpoch splice) (guessedChain splice)))
-          (Function.update starts (guessedEpoch splice)
-            (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))]
-        {true} := congrArg (· {true}) hresample.symm
-    _ = 𝒟[($ᵗ H : ProbComp H) >>= fun x =>
-      GXMSS.sampleStarts H h v >>= fun starts =>
-        F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1 x) starts]
-        {true} := by
-      apply evalDist_bind_event_eq_of_discrete _ _ _ {true} (measurableSet_singleton true)
-      intro x
-      apply evalDist_bind_event_eq_of_discrete _ _ _ {true} (measurableSet_singleton true)
-      intro starts
-      exact hpoint x starts
+  have hcouple := ReturnedMass.independent_coordinate_image_mass
+    (GXMSS.sampleStarts H h v) sampleStarts_uniform_measure
+    (guessedEpoch splice) (guessedChain splice)
+    (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1) F
+    (fun answer starts x => runContextFilteredSpliced_zero_start_update_mass
+      hash enc K ctx adv pp selector splice answer starts x observe hzero hn hepoch hchain)
   simpa only [F, map_eq_bind_pure_comp, Function.comp_def, bind_assoc, pure_bind]
     using hcouple
 private theorem filteredZero_real_source_mass
@@ -791,61 +590,12 @@ private theorem filteredZero_real_source_mass
     (fun out => out.elim false
       (fun result => jointChainObservation hash enc K (selector, result))) <$>
       runFilteredSpliced hash enc K adv pp selector splice answer starts
-  have hpoint (x : H) (starts : Epoch h → Fin v → H) :
-      𝒟[F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-        ((Function.update starts (guessedEpoch splice)
-          (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))
-          (guessedEpoch splice) (guessedChain splice)))
-        (Function.update starts (guessedEpoch splice)
-          (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))]
-        {true} =
-      𝒟[F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1 x) starts]
-        {true} := by
-    simp only [Function.update_self]
-    exact runFilteredSpliced_zero_start_update_mass hash enc K adv pp selector splice
-      (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1 x)
-      starts x hzero hn hepoch hchain
-  have hresample := sampleStarts_coordinate_resampling_bind
-    (H := H) (α := Bool) (guessedEpoch splice) (guessedChain splice)
-    (fun starts => F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-      (starts (guessedEpoch splice) (guessedChain splice))) starts)
-  change 𝒟[($ᵗ H : ProbComp H) >>= fun x =>
-    GXMSS.sampleStarts H h v >>= fun starts =>
-      F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-        ((Function.update starts (guessedEpoch splice)
-          (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))
-          (guessedEpoch splice) (guessedChain splice)))
-        (Function.update starts (guessedEpoch splice)
-          (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))] =
-    𝒟[GXMSS.sampleStarts H h v >>= fun starts =>
-      F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-        (starts (guessedEpoch splice) (guessedChain splice))) starts] at hresample
-  have hcouple : 𝒟[GXMSS.sampleStarts H h v >>= fun starts =>
-      F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-        (starts (guessedEpoch splice) (guessedChain splice))) starts] {true} =
-    𝒟[($ᵗ H : ProbComp H) >>= fun x =>
-      GXMSS.sampleStarts H h v >>= fun starts =>
-        F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1 x) starts]
-      {true} := by
-   calc
-    _ = 𝒟[($ᵗ H : ProbComp H) >>= fun x =>
-      GXMSS.sampleStarts H h v >>= fun starts =>
-        F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1
-          ((Function.update starts (guessedEpoch splice)
-            (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))
-            (guessedEpoch splice) (guessedChain splice)))
-          (Function.update starts (guessedEpoch splice)
-            (Function.update (starts (guessedEpoch splice)) (guessedChain splice) x))]
-        {true} := congrArg (· {true}) hresample.symm
-    _ = 𝒟[($ᵗ H : ProbComp H) >>= fun x =>
-      GXMSS.sampleStarts H h v >>= fun starts =>
-        F (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1 x) starts]
-        {true} := by
-      apply evalDist_bind_event_eq_of_discrete _ _ _ {true} (measurableSet_singleton true)
-      intro x
-      apply evalDist_bind_event_eq_of_discrete _ _ _ {true} (measurableSet_singleton true)
-      intro starts
-      exact hpoint x starts
+  have hcouple := ReturnedMass.independent_coordinate_image_mass
+    (GXMSS.sampleStarts H h v) sampleStarts_uniform_measure
+    (guessedEpoch splice) (guessedChain splice)
+    (hash.chain pp (guessedEpoch splice) (guessedChain splice) 0 1) F
+    (fun answer starts x => runFilteredSpliced_zero_start_update_mass
+      hash enc K adv pp selector splice answer starts x hzero hn hepoch hchain)
   simpa only [F, map_eq_bind_pure_comp, Function.comp_def, bind_assoc, pure_bind]
     using hcouple
 /-- Advancing the filtered honest response from the first positive step to the selected cut
@@ -1145,16 +895,6 @@ private theorem jointChainAdvantage_eq_zeroReal
     ← jointHonestSpliceProgram_eq_source hash enc K hv hw adv]
   exact (jointHonestSplice_mass_eq_filtered hash enc K adv).trans
     (jointFilteredHonest_mass_eq_zeroReal hash enc K adv)
-/-- A cancellation-free finite telescope suitable for subprobability event masses. -/
-private theorem finite_chain_hybrid_telescope (f : ℕ → ℝ≥0∞) (n : ℕ) :
-    f 0 + ∑ j ∈ Finset.range n, f (j + 1) =
-      f n + ∑ j ∈ Finset.range n, f j := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    simp only [Finset.sum_range_succ]
-    rw [← add_assoc, ih]
-    ac_rfl
 /-- A finite additive telescope yields the desired loss from one Boolean UD distance. -/
 private theorem finite_hybrid_boolDist_bound
     (source terminal real ideal distance : ℝ≥0∞) (n : ℕ)
@@ -1163,45 +903,9 @@ private theorem finite_hybrid_boolDist_bound
       terminal + (n : ℝ≥0∞) * real)
     (hdistance : real ≤ ideal + distance) :
     source ≤ terminal + (n : ℝ≥0∞) * distance := by
-  apply ENNReal.le_of_add_le_add_right hfinite
-  calc
-    source + (n : ℝ≥0∞) * ideal =
-        terminal + (n : ℝ≥0∞) * real := htelescope
-    _ ≤ terminal + (n : ℝ≥0∞) * (ideal + distance) := by
-      gcongr
-    _ = (terminal + (n : ℝ≥0∞) * distance) +
-        (n : ℝ≥0∞) * ideal := by
-      rw [mul_add]
-      ac_rfl
-/-- A uniform finite hybrid index averages unconditioned returned true masses. -/
-private theorem uniform_fin_bind_true_mass (n : ℕ) [NeZero n]
-    (f : Fin n → ProbComp Bool) :
-    𝒟[($ᵗ (Fin n) : ProbComp (Fin n)) >>= f] {true} =
-      (n : ℝ≥0∞)⁻¹ * ∑ j : Fin n, 𝒟[f j] {true} := by
-  rw [evalDist_bind_of_discrete, SampleableType.evalDist_uniformSample,
-    ProbabilityTheory.uniformOn_univ_bind_apply (fun j => 𝒟[f j]) {true}
-      (measurableSet_singleton true)]
-  simp only [Fintype.card_fin, Finset.mul_sum]
-/-- Zeroing all hybrid indices beyond a selected cut leaves its finite prefix sum. -/
-private theorem fin_sum_lt_eq_range (n g : ℕ) (hg : g ≤ n)
-    (f : ℕ → ℝ≥0∞) :
-    (∑ j : Fin n, if j.val < g then f j.val else 0) =
-      ∑ j ∈ Finset.range g, f j := by
-  change (∑ j : Fin n, (fun k : ℕ => if k < g then f k else 0) j.val) = _
-  rw [Fin.sum_univ_eq_sum_range (fun k : ℕ => if k < g then f k else 0) n]
-  have hsum := Finset.sum_range_add_sum_Ico
-    (fun j : ℕ => if j < g then f j else 0) hg
-  rw [← hsum]
-  have hprefix : (∑ j ∈ Finset.range g, if j < g then f j else 0) =
-      ∑ j ∈ Finset.range g, f j := by
-    apply Finset.sum_congr rfl
-    intro j hj
-    simp [Finset.mem_range.mp hj]
-  have htail : (∑ j ∈ Finset.Ico g n, if j < g then f j else 0) = 0 := by
-    apply Finset.sum_eq_zero
-    intro j hj
-    simp [not_lt.mpr (Finset.mem_Ico.mp hj).1]
-  rw [hprefix, htail, add_zero]
+  exact HybridTelescope.finite_hybrid_boolDist_bound source terminal real ideal distance n
+    hfinite htelescope hdistance
+
 /-- Pointwise selected-cut masses average to the exact finite-prefix sum. -/
 private theorem uniform_fin_prefix_true_mass_of_pointwise
     (n g : ℕ) [NeZero n] (hg : g ≤ n)
@@ -1210,9 +914,8 @@ private theorem uniform_fin_prefix_true_mass_of_pointwise
       𝒟[actual j] {true} = if j.val < g then f j.val else 0) :
     𝒟[do let j ← ($ᵗ (Fin n) : ProbComp (Fin n)); actual j] {true} =
       (n : ℝ≥0∞)⁻¹ * ∑ j ∈ Finset.range g, f j := by
-  rw [uniform_fin_bind_true_mass]
-  simp_rw [hpoint]
-  exact congrArg ((n : ℝ≥0∞)⁻¹ * ·) (fin_sum_lt_eq_range n g hg f)
+  exact HybridTelescope.uniform_fin_prefix_true_mass_of_pointwise n g hg actual f hpoint
+
 private theorem finite_chain_hybrid_mean_telescope (real ideal : ℕ → ℝ≥0∞)
     (n g : ℕ) [NeZero n]
     (htelescope : real 0 + ∑ j ∈ Finset.range g, ideal j =
@@ -1221,9 +924,6 @@ private theorem finite_chain_hybrid_mean_telescope (real ideal : ℕ → ℝ≥0
       ∑ j ∈ Finset.range g, ideal j) =
     real g + (n : ℝ≥0∞) * ((n : ℝ≥0∞)⁻¹ *
       ∑ j ∈ Finset.range g, real j) := by
-  have hn0 : (n : ℝ≥0∞) ≠ 0 := by
-    exact_mod_cast (NeZero.ne n)
-  have hntop : (n : ℝ≥0∞) ≠ ∞ := ENNReal.natCast_ne_top n
-  simpa only [← mul_assoc, ENNReal.mul_inv_cancel hn0 hntop, one_mul] using htelescope
+  exact HybridTelescope.finite_chain_hybrid_mean_telescope real ideal n g htelescope
 
 end GXMSS.Reductions

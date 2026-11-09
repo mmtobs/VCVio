@@ -64,9 +64,73 @@ the supplied PRF key generator's distribution; no uniform derived seed is assume
 `cachedQueryImpl` uses a persistent cache of full responses in the ideal oracle, and
 `cachedQuery_replay` preserves the complete stored response on repeats.
 
-The pure construction APIs do not themselves prove an executed PRF query bound or whole-game
-real/ideal transport. Those security obligations must be qualified against their actual
-reduction programs and local sampling laws.
+## Global security and the shared PRF hop
+
+Import `HashSig.GXMSS.Security.Hypertree.Unforgeability` for
+`GXMSS.Hypertree.Unforgeability.strong_unforgeability_reduction_bound` and its adjacent
+`strongUnforgeabilityBound`. The displayed right-hand side is the sum of the four actual
+collision advantages and the original-domain chain advantages with coefficients `C` and
+`C*(D-1)`. The ordinary theorem is in the same file. The hypotheses include positive chain
+count and width, the actual pathwise signing-query bound, and explicit fibrewise
+`Family.NoMaximumOutput`. Two distinct codewords at each coordinate imply the last property;
+shape positivity and incomparability alone do not.
+
+The inspectable `Security/Hypertree/Reductions` directory contains the six named adversaries.
+`TargetCounts` proves the actual chain and combined forest ledger lengths `C` and
+`C+F*(2*b-1)`, their safe caps, accepted prefixes and global tweak separation.
+`TargetRegistration` executes the authoritative hash games: registration has no public-seed
+argument, and extraction after seed revelation returns the second input at the registered
+first input's index.
+
+`ForestWitnesses` partitions the actual native strong-forgery experiment. `Interaction` keeps
+full consumed failures and the private bottom attempts, even when an upper certificate makes
+the full signature fail. `ChainContinuation` recomputes roots, ancestor messages and fixed
+retry results from each changed endpoint table. `ChainMass` supplies whole adaptive filtered
+continuation laws. The generic splice, source-mass and telescope kernels live once under
+`Security/Auxiliary`; the old complete/interval public endpoints specialize those helpers.
+
+`FamilyEncoding` uses one mixed transcript, full coordinates and each fibre's own retry
+plan. The eager record cap is `qs+U`. Its exact strategy-dependent collision advantage stays
+explicit; neither incomparability nor correlated counter sampling implies it is small.
+`EncodingAcceptedOutput` provides a shared transport kernel whose weaker decoder injectivity
+premise applies only to accepted outputs. A mixed-family hash-only specialization still needs
+an actual compatible bridge.
+
+Import `HashSig.GXMSS.Security.Hypertree.PRFDerivedUnforgeability` for
+`GXMSS.Hypertree.PRFDerived.Unforgeability.strong_unforgeability_reduction_bound` and its
+adjacent `strongUnforgeabilityBound`. This adds exactly one named PRF advantage to the direct
+six-term bound. The security-layer `SamplingLaws` has local seed, start, bottom-coin and
+internal-coin pushforward laws. Grouped starts require the joint two-start law. These local
+laws prove the complete ideal interaction correspondence with one persistent full-response
+cache. The real correspondence uses the actual retained evaluator key and its key generator.
+
+The `randgenPRFReduction_query_bound` theorem in the `PRFDerivedQueryBounds` module
+bounds the executed reduction.
+The eager IID cap is `1+L*v+U*K_internal+qs*K_bottom`. The grouped cap is
+`1+L*ceil(v/2)+U+qs`, including a base request for a zero-budget family. Public hash trial
+work is separate. No running-time bound is asserted. The existing complete scheme's
+three-query-family, three-law public theorem remains unchanged.
+
+## Depth-one compatibility coverage
+
+Import `HashSig.GXMSS.Hypertree.SingleLayer` for explicit epoch, coordinate, message, raw-key
+and signature equivalences, root/path/verifier equations and IID signing/key-generation laws.
+Import `HashSig.GXMSS.Security.Hypertree.SingleLayer` for actual enriched-source transports,
+regular/strong Boolean measures and advantages, and the primitive observations.
+
+The named Merkle, same-message chain and chain-cut reductions have full Boolean experiment
+and advantage equalities to the historical complete-tree reductions on the reindexed source
+adversary. Merkle and same-message experiments also have explicit full-range interval laws.
+The family encoding experiment has a full measure/advantage transport to an explicitly
+translated ordinary encoding strategy. Equality with the historical named encoding simulator
+has not been proved.
+
+The chain compatibility module proves selector sampling, original PRE/UD problems, both
+challenge responses, every spliced prefix, canonical fallback and validity-guard equations.
+Complete adaptive PRE/UD experiment and advantage equalities remain unproved. They require
+joint spliced IID-retry/filtered-state transport and preservation of fallback output mass.
+Consequently, full displayed-RHS compatibility and the requested relaxed complete-bound
+corollary are not claimed here. These gaps do not replace or assume the direct forest bound.
 
 ## Review and evidence limits
 
@@ -75,8 +139,8 @@ canaries, successful/failing construction controls, correlated retry controls an
 origin/body/transitive-axiom audits. `PublicAPI` applies construction/correctness endpoints
 through ordinary public imports.
 
-The early construction checkpoint is for functional transports. The direct six-reduction
-security endpoint, PRF composition, all per-experiment depth-one transports and final
-aggregate qualification must be checked separately before a security handoff. Compilation
-and agent review do not establish concrete hash or PRF hardness, ROM/QROM security,
-serialization correctness or running-time bounds.
+The clean early construction checkpoint is qualified for functional transports only. A final
+candidate's exact source, independent reviews, completed and missing checks, and depth-one
+transport coverage belong in its accompanying human guide and consumer handoff. Read those
+source-bound records before reuse. Compilation and agent review do not establish concrete hash
+or PRF hardness, ROM/QROM security, serialization correctness or running-time bounds.

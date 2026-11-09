@@ -5,6 +5,8 @@ Authors: Matthias Meijers
 -/
 
 module
+public import HashSig.GXMSS.Security.Auxiliary.ChainContinuation
+public import HashSig.GXMSS.Security.Auxiliary.FilteredSimulation
 public import HashSig.GXMSS.Completeness
 import all HashSig.GXMSS.Completeness
 public import HashSig.GXMSS.Security.Auxiliary.ChainSelection
@@ -225,16 +227,19 @@ private structure UDTargetState (H : Type) (h w v : ℕ) where
   hybrid : Fin (2 ^ w - 1)
   answer : Option H
   starts : Epoch h → Fin v → H
+/-- Chain recurrence and composition shared by all component splice interpreters. -/
+private def chainFamily (hash : HashInstance PP T X H h w v) (pp : PP) :
+    ChainContinuation.ChainFamily (Epoch h) H v where
+  chain := hash.chain pp
+  chain_zero := hash.chain_zero pp
+  chain_add := hash.chain_add pp
+
 /-- Chain family spliced at the guessed positive position using the challenge image itself. -/
 private def splicedChainValue (hash : HashInstance PP T X H h w v) (pp : PP)
     (guess : Guess h w v) (answer : H) (starts : Epoch h → Fin v → H)
     (ep : Epoch h) (i : Fin v) (position : ℕ) : H :=
-  if _htarget : ep = guessedEpoch guess ∧ i = guessedChain guess then
-    if position < (guessedPosition guess).val + 1 then
-      hash.chain pp ep i 0 position (starts ep i)
-    else hash.chain pp ep i ((guessedPosition guess).val + 1)
-      (position - ((guessedPosition guess).val + 1)) answer
-  else hash.chain pp ep i 0 position (starts ep i)
+  ChainContinuation.spliceValue (chainFamily hash pp) (guessedEpoch guess)
+    (guessedChain guess) (guessedPosition guess).val answer starts ep i position
 /-- Supplying the honest response at a cut reproduces every original chain prefix. -/
 private theorem splicedChainValue_honest
     (hash : HashInstance PP T X H h w v) (pp : PP)
@@ -245,19 +250,8 @@ private theorem splicedChainValue_honest
         ((guessedPosition guess).val + 1)
         (starts (guessedEpoch guess) (guessedChain guess))) starts ep i position =
       hash.chain pp ep i 0 position (starts ep i) := by
-  unfold splicedChainValue
-  split_ifs with htarget hbefore
-  · rfl
-  · rcases htarget with ⟨hepoch, hchain⟩
-    subst ep
-    subst i
-    have hle : (guessedPosition guess).val + 1 ≤ position := by omega
-    simpa [Nat.add_sub_of_le hle] using
-      (hash.chain_add pp (guessedEpoch guess) (guessedChain guess) 0
-        ((guessedPosition guess).val + 1)
-        (position - ((guessedPosition guess).val + 1))
-        (starts (guessedEpoch guess) (guessedChain guess))).symm
-  · rfl
+  exact ChainContinuation.spliceValue_honest (chainFamily hash pp)
+    (guessedEpoch guess) (guessedChain guess) (guessedPosition guess).val starts ep i position
 /-- Advancing a splice by one chain step leaves every later prefix unchanged when the later
 answer is the hash of the earlier answer. -/
 private theorem splicedChainValue_advance
@@ -272,26 +266,15 @@ private theorem splicedChainValue_advance
       splicedChainValue hash pp guess₂
         (hash.chain pp (guessedEpoch guess₁) (guessedChain guess₁)
           ((guessedPosition guess₁).val + 1) 1 answer) starts ep i position := by
-  unfold splicedChainValue
-  by_cases htarget : ep = guessedEpoch guess₁ ∧ i = guessedChain guess₁
-  · have htarget₂ : ep = guessedEpoch guess₂ ∧ i = guessedChain guess₂ := by
-      simpa only [← hepoch, ← hchain] using htarget
-    simp only [htarget]
-    have hlate₁ : ¬position < (guessedPosition guess₁).val + 1 := by omega
-    have hlate₂ : ¬position < (guessedPosition guess₂).val + 1 := by omega
-    simp only [hlate₁, hlate₂, ↓reduceIte]
-    rcases htarget with ⟨rfl, rfl⟩
-    have hcount : position - ((guessedPosition guess₁).val + 1) =
-        1 + (position - ((guessedPosition guess₂).val + 1)) := by omega
-    rw [hcount, hash.chain_add]
-    simp [hnext, hepoch, hchain]
-  · have htarget₂ : ¬(ep = guessedEpoch guess₂ ∧ i = guessedChain guess₂) := by
-      simpa only [← hepoch, ← hchain] using htarget
-    simp [htarget, htarget₂]
+  have h := ChainContinuation.spliceValue_advance (chainFamily hash pp)
+    (guessedEpoch guess₁) (guessedChain guess₁) (guessedPosition guess₁).val
+    answer starts ep i position (fun _ _ => by omega)
+  simpa only [splicedChainValue, ← hepoch, ← hchain, hnext, chainFamily] using h
 private def splicedEndpoints (hash : HashInstance PP T X H h w v) (pp : PP)
     (guess : Guess h w v) (answer : H) (starts : Epoch h → Fin v → H) :
-    Epoch h → Fin v → H := fun ep i =>
-  splicedChainValue hash pp guess answer starts ep i (2 ^ w - 1)
+    Epoch h → Fin v → H :=
+  ChainContinuation.spliceEndpoints (chainFamily hash pp) (2 ^ w - 1)
+    (guessedEpoch guess) (guessedChain guess) (guessedPosition guess).val answer starts
 private theorem splicedEndpoints_honest
     (hash : HashInstance PP T X H h w v) (pp : PP)
     (guess : Guess h w v) (starts : Epoch h → Fin v → H) :
@@ -324,10 +307,12 @@ private theorem splicedEndpoints_guess_final
     (hfinal : (guessedPosition guess).val + 1 = 2 ^ w - 1) :
     splicedEndpoints hash pp guess answer starts
       (guessedEpoch guess) (guessedChain guess) = answer := by
-  rcases guess with ⟨ep, i, pos⟩
-  dsimp [guessedEpoch, guessedChain, guessedPosition] at hfinal ⊢
-  simp [splicedEndpoints, splicedChainValue, guessedEpoch, guessedChain,
-    guessedPosition, hfinal]
+  change ChainContinuation.spliceEndpoints (chainFamily hash pp) (2 ^ w - 1)
+    (guessedEpoch guess) (guessedChain guess) (guessedPosition guess).val answer starts
+      (guessedEpoch guess) (guessedChain guess) = answer
+  simpa only [hfinal] using
+    ChainContinuation.spliceEndpoints_selected_final (chainFamily hash pp)
+      (guessedEpoch guess) (guessedChain guess) (guessedPosition guess).val answer starts
 /-- Deterministic tree assembly and epoch eligibility shared by chain splice interpreters.
 The root and path depend on endpoints rather than the hidden start table. -/
 private structure ChainSimulationContext (PP H : Type) (h v : ℕ) where
@@ -344,6 +329,21 @@ private def contextSplicedSignatureOfWord (hash : HashInstance PP T X H h w v)
     GXMSS.Signature R H h v :=
   ⟨wr.2, fun i => splicedChainValue hash pp guess answer starts ep i (wr.1 i),
     ctx.path pp endpoints ep⟩
+/-- Materialize one signature from endpoint-derived paths and its word's prefix reads. -/
+private def contextWordContinuation (ctx : ChainSimulationContext PP H h v) (pp : PP)
+    (ep : Epoch h) (wr : Codeword v (2 ^ w) × R) :
+    ChainContinuation.EndpointContinuation (Epoch h) H Unit (Epoch h → Fin h → H)
+      (GXMSS.Signature R H h v) v where
+  prepare := fun endpoints _ => ctx.path pp endpoints
+  materialize := fun paths prefixes =>
+    ⟨wr.2, fun i => prefixes ep i (wr.1 i), paths ep⟩
+  reads := fun _ c i position => c = ep ∧ position = (wr.1 i).val
+  materialize_congr := by
+    intro paths left right hread
+    apply congrArg (fun f : Fin v → H => (⟨wr.2, f, paths ep⟩ : GXMSS.Signature R H h v))
+    funext i
+    exact hread ep i (wr.1 i) ⟨rfl, rfl⟩
+
 private theorem contextSplicedSignatureOfWord_advance
     (hash : HashInstance PP T X H h w v) (ctx : ChainSimulationContext PP H h v) (pp : PP)
     (guess₁ guess₂ : Guess h w v) (answer : H)
@@ -362,22 +362,18 @@ private theorem contextSplicedSignatureOfWord_advance
       (splicedEndpoints hash pp guess₂
         (hash.chain pp (guessedEpoch guess₁) (guessedChain guess₁)
           ((guessedPosition guess₁).val + 1) 1 answer) starts) ep wr := by
-  have hend := splicedEndpoints_advance hash pp guess₁ guess₂ answer starts
-    hepoch hchain hnext
-  have hots : (fun i => splicedChainValue hash pp guess₁ answer starts ep i (wr.1 i)) =
-      (fun i => splicedChainValue hash pp guess₂
-        (hash.chain pp (guessedEpoch guess₁) (guessedChain guess₁)
-          ((guessedPosition guess₁).val + 1) 1 answer) starts ep i (wr.1 i)) := by
-    funext i
-    by_cases htarget : ep = guessedEpoch guess₁ ∧ i = guessedChain guess₁
-    · have hi : (guessedPosition guess₂).val + 1 ≤ (wr.1 i).val := by
-        simpa only [htarget.2] using hword htarget.1
-      exact splicedChainValue_advance hash pp guess₁ guess₂ answer starts ep i
-        (wr.1 i).val hepoch hchain hnext hi
-    · have htarget₂ : ¬(ep = guessedEpoch guess₂ ∧ i = guessedChain guess₂) := by
-        simpa only [← hepoch, ← hchain] using htarget
-      simp [splicedChainValue, htarget, htarget₂]
-  simp only [contextSplicedSignatureOfWord, hots, hend]
+  have h := (contextWordContinuation ctx pp ep wr).materialize_splice_advance
+    (chainFamily hash pp) (2 ^ w - 1) (guessedEpoch guess₁) (guessedChain guess₁)
+    (guessedPosition guess₁).val answer starts () (by have := (guessedPosition guess₂).isLt; omega)
+    (by
+      intro c i position hread he hi
+      have hep : ep = guessedEpoch guess₁ := hread.1.symm.trans he
+      have hbound := hword hep
+      have hposition : position = (wr.1 (guessedChain guess₁)).val := by
+        simpa only [hi] using hread.2
+      omega)
+  simpa only [contextWordContinuation, contextSplicedSignatureOfWord, splicedChainValue,
+    splicedEndpoints, ← hepoch, ← hchain, hnext, chainFamily] using h
 private def splicedSignatureOfWord (hash : HashInstance PP T X H h w v) (pp : PP)
     (guess : Guess h w v) (answer : H) (starts : Epoch h → Fin v → H)
     (endpoints : Epoch h → Fin v → H) (ep : Epoch h) (wr : Codeword v (2 ^ w) × R) :
@@ -436,7 +432,8 @@ private theorem contextSplicedSignatureOfWord_guess_succ
   subst ep
   rcases guess with ⟨ep, i, pos⟩
   dsimp [guessedEpoch, guessedChain, guessedPosition] at hword ⊢
-  simp [contextSplicedSignatureOfWord, splicedChainValue, guessedEpoch, guessedChain,
+  simp [contextSplicedSignatureOfWord, splicedChainValue, ChainContinuation.spliceValue,
+    chainFamily, guessedEpoch, guessedChain,
     guessedPosition, hword]
 private theorem splicedSignatureOfWord_guess_succ
     (hash : HashInstance PP T X H h w v) (pp : PP)
@@ -449,7 +446,8 @@ private theorem splicedSignatureOfWord_guess_succ
   subst ep
   rcases guess with ⟨ep, i, pos⟩
   dsimp [guessedEpoch, guessedChain, guessedPosition] at hword ⊢
-  simp [splicedSignatureOfWord, splicedChainValue, guessedEpoch, guessedChain,
+  simp [splicedSignatureOfWord, splicedChainValue, ChainContinuation.spliceValue,
+    chainFamily, guessedEpoch, guessedChain,
     guessedPosition, hword]
 private def contextSplicedSigningOracle [SampleableType R]
     (hash : HashInstance PP T X H h w v)
@@ -563,65 +561,8 @@ private theorem goodOutput_simulateQ_eq_filtered
     𝒟[(simulateQ original oa).run s₀] {(a, s)} =
       𝒟[(simulateQ filtered oa).run
         (if bad s₀ then none else some s₀)] {(a, some s)} := by
-  classical
-  simp only [← prEvent_eq_evalDist_singleton]
-  have zeroOriginal (program : OracleComp spec α) (start : σ)
-      (hbad : bad start = true) :
-      𝒟[(simulateQ original program).run start] {(a, s)} = 0 := by
-    rw [← prEvent_eq_evalDist_singleton]
-    apply (OracleComp.prEvent_eq_zero_iff _ _).2
-    intro z hz heq
-    have hpres := OracleComp.simulateQ_run_preserves_inv_of_query
-      original (fun x => bad x = true) hmono program start hbad z hz
-    subst z
-    exact Bool.false_ne_true (hgood.symm.trans hpres)
-  have zeroFiltered (program : OracleComp spec α) :
-      𝒟[(simulateQ filtered program).run none] {(a, some s)} = 0 := by
-    rw [← prEvent_eq_evalDist_singleton]
-    apply (OracleComp.prEvent_eq_zero_iff _ _).2
-    intro z hz heq
-    have hpres := OracleComp.simulateQ_run_preserves_inv_of_query
-      filtered (fun x => x = none) (by
-        intro t state hs z hz
-        subst state
-        exact habsorb t z hz) program none rfl z hz
-    subst z
-    cases hpres
-  induction oa using OracleComp.inductionOn generalizing s₀ with
-  | pure x =>
-    by_cases hbad : bad s₀ = true
-    · have hsneq : s ≠ s₀ := by
-        intro he
-        subst s₀
-        exact Bool.false_ne_true (hgood.symm.trans hbad)
-      simpa [hbad, simulateQ_pure] using
-        (fun (_ : x = a) (he : s₀ = s) => hsneq he.symm)
-    · have hgood₀ : bad s₀ = false := by cases h : bad s₀ <;> simp_all
-      simp [hgood₀, simulateQ_pure]
-  | query_bind t cont ih =>
-    by_cases hbad : bad s₀ = true
-    · simpa only [hbad, ite_true, ← prEvent_eq_evalDist_singleton, simulateQ_bind,
-        simulateQ_query, OracleQuery.input_query, OracleQuery.cont_query,
-        id_map, StateT.run_bind] using
-        (zeroOriginal ((liftM (OracleSpec.query t) :
-          OracleComp spec (spec.Range t)) >>= cont) s₀ hbad).trans
-          (zeroFiltered ((liftM (OracleSpec.query t) :
-            OracleComp spec (spec.Range t)) >>= cont)).symm
-    · have hgood₀ : bad s₀ = false := by cases h : bad s₀ <;> simp_all
-      simp only [simulateQ_bind, simulateQ_query, OracleQuery.input_query,
-        OracleQuery.cont_query, id_map, StateT.run_bind]
-      simp only [hgood₀, Bool.false_eq_true, ite_false]
-      rw [← hstep t s₀ hgood₀, bind_map_left]
-      rw [OracleComp.prEvent_bind_eq_tsum, OracleComp.prEvent_bind_eq_tsum]
-      exact tsum_congr fun ⟨u, s'⟩ => by
-        congr 1
-        by_cases hbad' : bad s' = true
-        · simp only [hbad', ite_true]
-          simpa only [← prEvent_eq_evalDist_singleton] using
-            (zeroOriginal (cont u) s' hbad').trans
-              (zeroFiltered (cont (transform t (u, s')))).symm
-        · have hgood' : bad s' = false := by cases h : bad s' <;> simp_all
-          simpa [hgood', htransform t u s' hgood'] using ih u s'
+  exact FilteredSimulation.goodOutput_simulateQ_eq_filtered original filtered bad transform
+    htransform hmono habsorb hstep oa s₀ a s hgood
 /-- A selected win never ends with the killed successful first request. -/
 private theorem jointChainObservation_not_badSelectedHistory
     [SampleableType H] [SampleableType R]
@@ -1453,31 +1394,6 @@ private theorem goodEvent_eq_filtered
       𝒟[original] {z} = 𝒟[filtered] {(z.1, some z.2)}) :
     𝒟[event <$> original] {true} =
       𝒟[(fun z => z.2.elim false (fun s => event (z.1, s))) <$> filtered] {true} := by
-  classical
-  let filteredEvent : α × Option σ → Bool :=
-    fun z => z.2.elim false (fun s => event (z.1, s))
-  change 𝒟[event <$> original] {true} = 𝒟[filteredEvent <$> filtered] {true}
-  rw [evalDist_map_apply original Measurable.of_discrete (measurableSet_singleton true),
-    evalDist_map_apply filtered Measurable.of_discrete (measurableSet_singleton true)]
-  change 𝒟[original] {z | event z = true} =
-    𝒟[filtered] {z | filteredEvent z = true}
-  rw [← prEvent_eq_evalDist_of_discrete original (fun z => event z = true),
-    ← prEvent_eq_evalDist_of_discrete filtered (fun z => filteredEvent z = true)]
-  rw [OracleComp.prEvent_eq_tsum_ite, OracleComp.prEvent_eq_tsum_ite]
-  conv_rhs =>
-    rw [ENNReal.tsum_prod']
-  conv_lhs =>
-    rw [ENNReal.tsum_prod']
-  apply tsum_congr
-  intro a
-  rw [tsum_option _ ENNReal.summable]
-  simp only [filteredEvent, Option.elim_none,
-    Option.elim_some, Bool.false_eq_true, ite_false, zero_add]
-  exact tsum_congr fun s => by
-    by_cases he : event (a, s) = true
-    · simp only [he, ite_true]
-      simpa only [prEvent_eq_evalDist_singleton, Prod.mk.eta] using
-        hpoint (a, s) (hgood (a, s) he)
-    · simp [he]
+  exact FilteredSimulation.goodEvent_eq_filtered original filtered bad event hgood hpoint
 
 end GXMSS.Reductions
