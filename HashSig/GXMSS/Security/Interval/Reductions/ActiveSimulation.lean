@@ -5,6 +5,7 @@ Authors: Matthias Meijers
 -/
 
 module
+import all HashSig.GXMSS.Security.Auxiliary.ChainSplicing
 public import HashSig.GXMSS.Interval.Merkle
 import all HashSig.GXMSS.Interval.Merkle
 public import HashSig.GXMSS.Interval.Scheme
@@ -356,8 +357,8 @@ private theorem intervalSplicedSignatureOfWord_selected
     signature.ots (guessedChain guess) = response := by
   rcases guess with ⟨epoch, chain, position⟩
   dsimp only [guessedEpoch, guessedChain, guessedPosition] at hword ⊢
-  simp [intervalSplicedSignatureOfWord, splicedChainValue,
-    guessedEpoch, guessedChain, guessedPosition, hword]
+  simp [intervalSplicedSignatureOfWord, splicedChainValue, ChainContinuation.spliceValue,
+    chainFamily, guessedEpoch, guessedChain, guessedPosition, hword]
 
 private theorem intervalSplicedEndpoints_terminal
     (P : HashInstance PP T X H h w v) (pp : PP)

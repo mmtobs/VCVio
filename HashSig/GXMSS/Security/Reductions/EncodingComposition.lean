@@ -33,7 +33,8 @@ theorem encoding_problem_eq [SampleableType R]
     (qs K : ℕ) (hseed : hash.thf.seedGen = bridge.th.seedGen) :
     encodingTCRProblem hash bridge.enc qs K =
       TargetCollisionReduction.encodingProblem bridge qs K := by
-  simp [encodingTCRProblem, TargetCollisionReduction.encodingProblem, hseed]
+  simp [encodingTCRProblem, TargetCollisionReduction.encodingProblem,
+    TargetCollisionTransport.encodingProblem, hseed]
 
 private theorem advantage_eq_transport
     [DecidableEq M] [DecidableEq R]

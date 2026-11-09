@@ -104,6 +104,7 @@ example :=
     expectedHistory 6 = some (true, none) from by
       have hots : signature.ots 0 = false := by
         simp [signature, endpoints, intervalSplicedSignatureOfWord, splicedChainValue,
+          ChainContinuation.spliceValue, chainFamily,
           splice, P, starts, guessedEpoch, guessedChain, guessedPosition,
           HashInstance.chain_succ, HashInstance.chain_zero]
       refine ⟨?_, ?_, hots, ?_, ?_, ?_, ?_⟩
@@ -115,7 +116,8 @@ example :=
         simp [enc, Encoding.IncomparableEncoding.retry, Encoding.IncomparableEncoding.value,
           intervalChainContext, Epoch.IsActive, middle, selector, splice, signature,
           contextSplicedSignatureOfWord, intervalSplicedSignatureOfWord,
-          splicedChainValue, guessedEpoch, guessedChain, guessedPosition,
+          splicedChainValue, ChainContinuation.spliceValue, chainFamily,
+          guessedEpoch, guessedChain, guessedPosition,
           expected, expectedHistory, endpoints, emptyHistory, Function.update, P, starts,
           map_eq_bind_pure_comp, bind_assoc, HashInstance.chain_succ, HashInstance.chain_zero]
         rfl
