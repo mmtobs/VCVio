@@ -60,7 +60,7 @@ theorem complete_zero_iff (alg : SyncSignatureAlg m M PK SK S E)
   · intro h ep msg
     simpa using (h ep msg).ge
 
-/-- In the canonical discrete runtime, generated keys are exactly structurally reachable keys. -/
+/-- In the canonical discrete runtime, generated keys are exactly reachable keys. -/
 theorem generated_probComp_iff_mem_support (alg : SyncSignatureAlg ProbComp M PK SK S E)
     (ks : PK × SK) :
     alg.Generated ProbCompRuntime.probComp ks ↔ ks ∈ support alg.keygen := by
