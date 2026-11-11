@@ -3,6 +3,14 @@ module  -- shake: keep-all --deprecated_module: ignore
 public import HashSig.GXMSS.Chain
 public import HashSig.GXMSS.Completeness
 public import HashSig.GXMSS.HashInstance
+public import HashSig.GXMSS.Interval.Completeness
+public import HashSig.GXMSS.Interval.FrontierCount
+public import HashSig.GXMSS.Interval.Merkle
+public import HashSig.GXMSS.Interval.Merkle.Active
+public import HashSig.GXMSS.Interval.Merkle.Basic
+public import HashSig.GXMSS.Interval.Merkle.Construction
+public import HashSig.GXMSS.Interval.Merkle.Pruned
+public import HashSig.GXMSS.Interval.Scheme
 public import HashSig.GXMSS.Merkle
 public import HashSig.GXMSS.Scheme
 public import HashSig.SLHDSA.Address
