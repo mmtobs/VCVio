@@ -2,6 +2,7 @@ module  -- shake: keep-all --deprecated_module: ignore
 
 public import VCVio.Algorithms.ComplementaryChecksum.Basic
 public import VCVio.Algorithms.Encoding
+public import VCVio.Algorithms.FirstSuccess.Basic
 public import VCVio.Algorithms.IndexedChain.Basic
 public import VCVio.Algorithms.IndexedChain.Witnesses
 public import VCVio.Algorithms.Keccak
@@ -365,6 +366,7 @@ public import VCVio.OracleComp.Coinductive.Responder
 public import VCVio.OracleComp.Coinductive.SecurityFamily
 public import VCVio.OracleComp.Coinductive.WiredRun
 public import VCVio.OracleComp.Constructions.BitVec
+public import VCVio.OracleComp.Constructions.FirstSuccess.Measure
 public import VCVio.OracleComp.Constructions.Fork.Basic
 public import VCVio.OracleComp.Constructions.GenerateSeed
 public import VCVio.OracleComp.Constructions.RandomPermutation.Conditioning
@@ -400,6 +402,7 @@ public import VCVio.OracleComp.OracleSpec
 public import VCVio.OracleComp.ProbComp
 public import VCVio.OracleComp.ProbComp.Basic
 public import VCVio.OracleComp.ProbComp.IndepProductEvents
+public import VCVio.OracleComp.ProbComp.SamplingLaws
 public import VCVio.OracleComp.ProbCompLift
 public import VCVio.OracleComp.QueryTracking
 public import VCVio.OracleComp.QueryTracking.AdaptivePrefix
