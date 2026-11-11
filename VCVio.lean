@@ -163,6 +163,11 @@ public import VCVio.CryptoFoundations.IncomparableEncoding.NonMaximum
 public import VCVio.CryptoFoundations.IncomparableEncoding.Retry
 public import VCVio.CryptoFoundations.IncomparableEncoding.Retry.Basic
 public import VCVio.CryptoFoundations.IncomparableEncoding.Retry.Measure
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetCollisionReduction
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetCollisionReduction.Basic
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetCollisionReduction.Reduction
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetCollisionReduction.Simulation
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetCollisionResistance
 public import VCVio.CryptoFoundations.KeyEncapMech
 public import VCVio.CryptoFoundations.LeftOrRight
 public import VCVio.CryptoFoundations.MacAlg
