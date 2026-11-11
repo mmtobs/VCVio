@@ -18,6 +18,8 @@ public import HashSig.GXMSS.Interval.Scheme
 public import HashSig.GXMSS.Merkle
 public import HashSig.GXMSS.Scheme
 public import HashSig.GXMSS.Security.Auxiliary.Adversary
+public import HashSig.GXMSS.Security.Auxiliary.ChainSelection
+public import HashSig.GXMSS.Security.Auxiliary.ChainWitnesses
 public import HashSig.GXMSS.Security.Auxiliary.HashWitnesses
 public import HashSig.GXMSS.Security.Auxiliary.MerkleWitnesses
 public import HashSig.GXMSS.Security.Interval.Auxiliary.FillerOpening
