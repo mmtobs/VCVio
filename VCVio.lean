@@ -168,6 +168,15 @@ public import VCVio.CryptoFoundations.IncomparableEncoding.TargetCollisionReduct
 public import VCVio.CryptoFoundations.IncomparableEncoding.TargetCollisionReduction.Reduction
 public import VCVio.CryptoFoundations.IncomparableEncoding.TargetCollisionReduction.Simulation
 public import VCVio.CryptoFoundations.IncomparableEncoding.TargetCollisionResistance
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetSum
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetSum.Basic
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetSum.Collision
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetSum.Counting
+public import VCVio.CryptoFoundations.IncomparableEncoding.TargetSum.Error
+public import VCVio.CryptoFoundations.IncomparableEncoding.Winternitz
+public import VCVio.CryptoFoundations.IncomparableEncoding.Winternitz.Code
+public import VCVio.CryptoFoundations.IncomparableEncoding.Winternitz.Collision
+public import VCVio.CryptoFoundations.IncomparableEncoding.Winternitz.Encoding
 public import VCVio.CryptoFoundations.KeyEncapMech
 public import VCVio.CryptoFoundations.LeftOrRight
 public import VCVio.CryptoFoundations.MacAlg

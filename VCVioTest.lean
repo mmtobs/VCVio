@@ -76,6 +76,7 @@ public import VCVioTest.GroupModel.Virtualize
 public import VCVioTest.ITSR
 public import VCVioTest.IncomparableEncoding.Basic
 public import VCVioTest.IncomparableEncoding.Code
+public import VCVioTest.IncomparableEncoding.Instances
 public import VCVioTest.IncomparableEncoding.Retry
 public import VCVioTest.IncomparableEncoding.TargetCollisionReduction
 public import VCVioTest.IncomparableEncoding.TargetCollisionResistance
