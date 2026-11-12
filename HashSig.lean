@@ -44,6 +44,7 @@ public import HashSig.GXMSS.Security.Interval.Reductions.MerkleCollision
 public import HashSig.GXMSS.Security.Interval.Reductions.MerkleGames
 public import HashSig.GXMSS.Security.Interval.Reductions.SourcePartition
 public import HashSig.GXMSS.Security.Interval.Reductions.SplicedView
+public import HashSig.GXMSS.Security.Interval.Unforgeability
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Tweaks
