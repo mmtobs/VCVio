@@ -6,7 +6,7 @@ Authors: Matthias Meijers
 
 module
 public import HashSig.GXMSS.Security.Auxiliary.MerkleWitnesses
-import all HashSig.GXMSS.Merkle
+import HashSig.GXMSS.Merkle
 import all HashSig.GXMSS.Security.Auxiliary.MerkleWitnesses
 
 /-!

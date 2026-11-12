@@ -7,15 +7,15 @@ Authors: Matthias Meijers
 module
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainCollision
 import all HashSig.GXMSS.Security.Interval.Reductions.ChainCollision
-import all HashSig.GXMSS.Security.Interval.Reductions.SplicedView
-import all HashSig.GXMSS.Security.Interval.Reductions.ChainPrograms
-import all HashSig.GXMSS.Security.Auxiliary.ChainWitnesses
-import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
+import HashSig.GXMSS.Security.Interval.Reductions.SplicedView
+import HashSig.GXMSS.Security.Interval.Reductions.ChainPrograms
+import HashSig.GXMSS.Security.Auxiliary.ChainWitnesses
+import HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
 import all HashSig.GXMSS.Chain
-import all HashSig.GXMSS.Merkle
-import all HashSig.GXMSS.Interval.Merkle.Basic
-import all VCVio.CryptoFoundations.SyncSignatureAlg.Unforgeability
-import all HashSig.GXMSS.Security.Interval.Auxiliary.Interaction
+import HashSig.GXMSS.Merkle
+import HashSig.GXMSS.Interval.Merkle.Basic
+import VCVio.CryptoFoundations.SyncSignatureAlg.Unforgeability
+import HashSig.GXMSS.Security.Interval.Auxiliary.Interaction
 
 /-!
 # Registered chain collision orientation controls

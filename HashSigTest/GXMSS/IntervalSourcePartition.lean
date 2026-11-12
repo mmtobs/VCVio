@@ -6,7 +6,7 @@ Authors: Matthias Meijers
 
 module
 public import HashSig.GXMSS.Security.Interval.Reductions.SourcePartition
-import all HashSig.GXMSS.Chain
+import HashSig.GXMSS.Chain
 import all HashSig.GXMSS.Merkle
 
 /-!

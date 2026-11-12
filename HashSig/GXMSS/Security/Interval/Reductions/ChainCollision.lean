@@ -9,13 +9,13 @@ public import HashSig.GXMSS.Security.Interval.Reductions.ChainPrograms
 public import HashSig.GXMSS.Security.Interval.Reductions.MerkleGames
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Tweaks
 import all HashSig.GXMSS.Security.Interval.Reductions.ChainPrograms
-import all HashSig.GXMSS.Security.Interval.Reductions.EncodingSimulation
-import all HashSig.GXMSS.Security.Interval.Reductions.SplicedView
+import HashSig.GXMSS.Security.Interval.Reductions.EncodingSimulation
+import HashSig.GXMSS.Security.Interval.Reductions.SplicedView
+-- The partition proof uses the private retained-key source program.
 import all HashSig.GXMSS.Security.Interval.Reductions.SourcePartition
-import all HashSig.GXMSS.Security.Auxiliary.ChainSelection
-import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
+import HashSig.GXMSS.Security.Auxiliary.ChainSelection
+import HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
 import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
-import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Tweaks
 import VCVio.OracleComp.EvalDist.Sum
 
 /-!

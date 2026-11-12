@@ -8,8 +8,8 @@ module
 public import HashSig.GXMSS.Security.Interval.Reductions.FilteredView
 public import HashSigTest.GXMSS.SplicedView
 import all HashSig.GXMSS.Security.Interval.Reductions.FilteredView
-import all HashSig.GXMSS.Security.Interval.Reductions.SplicedView
-import all HashSig.GXMSS.Security.Auxiliary.ChainSelection
+import HashSig.GXMSS.Security.Interval.Reductions.SplicedView
+import HashSig.GXMSS.Security.Auxiliary.ChainSelection
 import all HashSigTest.GXMSS.SplicedView
 
 /-!

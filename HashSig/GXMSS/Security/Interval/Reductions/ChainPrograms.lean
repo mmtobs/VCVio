@@ -13,9 +13,8 @@ public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTPRE
 public import VCVio.CryptoFoundations.HardnessAssumptions.TweakableHash.SMDTUD
 import all HashSig.GXMSS.Security.Interval.Reductions.EncodingSimulation
 import all HashSig.GXMSS.Security.Interval.Reductions.FilteredView
-import all HashSig.GXMSS.Security.Interval.Reductions.SplicedView
-import all HashSig.GXMSS.Security.Interval.Reductions.SourcePartition
-import all HashSig.GXMSS.Security.Auxiliary.ChainSelection
+import HashSig.GXMSS.Security.Interval.Reductions.SplicedView
+import HashSig.GXMSS.Security.Auxiliary.ChainSelection
 
 /-!
 # Original-domain interval chain reduction programs

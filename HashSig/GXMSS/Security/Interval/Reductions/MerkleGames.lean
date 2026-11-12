@@ -10,7 +10,7 @@ public import HashSig.GXMSS.Security.Auxiliary.MerkleWitnesses
 public import HashSig.GXMSS.Security.Interval.Auxiliary.Interaction
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Tweaks
-import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
+import HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
 import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
 import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Tweaks
 

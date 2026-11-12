@@ -6,9 +6,9 @@ Authors: Matthias Meijers
 
 module
 public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Reductions
-import all HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Setup
+import HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Setup
 import all HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Reductions
-import all HashSig.GXMSS.Security.Interval.Auxiliary.FillerTargets
+import HashSig.GXMSS.Security.Interval.Auxiliary.FillerTargets
 
 /-!
 # Filler-opening advantage bounds

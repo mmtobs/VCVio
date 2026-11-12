@@ -7,7 +7,7 @@ Authors: Matthias Meijers
 module
 public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Setup
 import all HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Setup
-import all HashSig.GXMSS.Security.Interval.Auxiliary.FillerTargets
+import HashSig.GXMSS.Security.Interval.Auxiliary.FillerTargets
 
 /-!
 # Adaptive filler reduction programs

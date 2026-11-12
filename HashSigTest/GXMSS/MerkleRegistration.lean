@@ -8,8 +8,8 @@ module
 public import HashSig.GXMSS.Security.Interval.Reductions.MerkleCollision
 public import HashSigTest.GXMSS.MerkleWitnesses
 import all HashSig.GXMSS.Security.Interval.Reductions.MerkleGames
-import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
-import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
+import HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
+import HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
 
 /-!
 # Genuine interval target registration controls

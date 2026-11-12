@@ -9,11 +9,10 @@ public import HashSig.GXMSS.Security.Interval.Reductions.ChainPrograms
 public import HashSigTest.GXMSS.SplicedView
 public import HashSigTest.GXMSS.FilteredView
 import all HashSig.GXMSS.Security.Interval.Reductions.ChainPrograms
-import all HashSig.GXMSS.Security.Interval.Reductions.SplicedView
-import all HashSig.GXMSS.Security.Interval.Reductions.FilteredView
-import all HashSig.GXMSS.Security.Interval.Reductions.SourcePartition
-import all HashSig.GXMSS.Security.Auxiliary.ChainSelection
-import all HashSigTest.GXMSS.SplicedView
+import HashSig.GXMSS.Security.Interval.Reductions.SplicedView
+import HashSig.GXMSS.Security.Interval.Reductions.FilteredView
+import HashSig.GXMSS.Security.Interval.Reductions.SourcePartition
+import HashSig.GXMSS.Security.Auxiliary.ChainSelection
 import all HashSig.GXMSS.Chain
 import all HashSig.GXMSS.Merkle
 

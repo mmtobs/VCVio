@@ -9,7 +9,7 @@ public import HashSig.GXMSS.Security.Interval.Reductions.EncodingSimulation
 public import HashSigTest.GXMSS.SplicedView
 import all HashSig.GXMSS.Security.Interval.Reductions.EncodingSimulation
 import all HashSigTest.GXMSS.SplicedView
-import all HashSig.GXMSS.Chain
+import HashSig.GXMSS.Chain
 
 /-!
 # Active encoding records and all-request budget controls

@@ -7,7 +7,7 @@ Authors: Matthias Meijers
 module
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
 
-import all HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
+import HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
 
 /-!
 # Tree tweak freshness and target capacities

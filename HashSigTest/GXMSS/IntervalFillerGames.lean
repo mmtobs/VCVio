@@ -7,7 +7,7 @@ Authors: Matthias Meijers
 module
 public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames
 import all HashSig.GXMSS.Security.Interval.Auxiliary.FillerTargets
-import all HashSig.GXMSS.Chain
+import HashSig.GXMSS.Chain
 import all HashSig.GXMSS.Merkle
 
 /-!

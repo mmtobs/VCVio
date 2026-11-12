@@ -7,7 +7,7 @@ Authors: Matthias Meijers
 module
 public import HashSig.GXMSS.Security.Interval.Reductions.SplicedView
 import all HashSig.GXMSS.Security.Interval.Reductions.SplicedView
-import all HashSig.GXMSS.Security.Auxiliary.ChainSelection
+import HashSig.GXMSS.Security.Auxiliary.ChainSelection
 import all HashSig.GXMSS.Chain
 
 /-!

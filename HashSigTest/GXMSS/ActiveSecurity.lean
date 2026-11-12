@@ -10,7 +10,7 @@ import all HashSig.GXMSS.Security.Interval.Reductions.SplicedView
 import all HashSig.GXMSS.Chain
 import all HashSig.GXMSS.Scheme
 import all HashSig.GXMSS.Merkle
-import all HashSig.GXMSS.Interval.Merkle.Basic
+import HashSig.GXMSS.Interval.Merkle.Basic
 
 /-!
 # Singleton nonmaximum code and strong freshness controls
