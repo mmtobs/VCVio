@@ -29,6 +29,7 @@ public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Collision
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Frontier
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Opening
+public import HashSig.GXMSS.Security.Interval.Reductions.ChainHybrid
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainPrograms
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainSource
 public import HashSig.GXMSS.Security.Interval.Reductions.EncodingSimulation
