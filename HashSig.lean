@@ -14,11 +14,13 @@ public import HashSig.GXMSS.Interval.Merkle.Active
 public import HashSig.GXMSS.Interval.Merkle.Basic
 public import HashSig.GXMSS.Interval.Merkle.Construction
 public import HashSig.GXMSS.Interval.Merkle.Pruned
+public import HashSig.GXMSS.Interval.PRFDerived.OracleQueries
 public import HashSig.GXMSS.Interval.PRFDerivedScheme
 public import HashSig.GXMSS.Interval.Scheme
 public import HashSig.GXMSS.Merkle
 public import HashSig.GXMSS.PRFDerived.Query
 public import HashSig.GXMSS.PRFDerived.Retry
+public import HashSig.GXMSS.PRFDerived.SamplingLaws
 public import HashSig.GXMSS.PRFDerivedScheme
 public import HashSig.GXMSS.Scheme
 public import HashSig.GXMSS.Security.Auxiliary.Adversary
@@ -50,6 +52,7 @@ public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Setup
 public import HashSig.GXMSS.Security.Interval.Reductions.FilteredView
 public import HashSig.GXMSS.Security.Interval.Reductions.MerkleCollision
 public import HashSig.GXMSS.Security.Interval.Reductions.MerkleGames
+public import HashSig.GXMSS.Security.Interval.Reductions.PRFDerivedOracleInteraction
 public import HashSig.GXMSS.Security.Interval.Reductions.SourcePartition
 public import HashSig.GXMSS.Security.Interval.Reductions.SplicedView
 public import HashSig.GXMSS.Security.Interval.Unforgeability
