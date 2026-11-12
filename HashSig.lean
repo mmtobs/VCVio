@@ -22,6 +22,7 @@ public import HashSig.GXMSS.Security.Auxiliary.ChainSelection
 public import HashSig.GXMSS.Security.Auxiliary.ChainWitnesses
 public import HashSig.GXMSS.Security.Auxiliary.HashWitnesses
 public import HashSig.GXMSS.Security.Auxiliary.MerkleWitnesses
+public import HashSig.GXMSS.Security.EncodingInstances
 public import HashSig.GXMSS.Security.Interval.Auxiliary.FillerOpening
 public import HashSig.GXMSS.Security.Interval.Auxiliary.FillerTargets
 public import HashSig.GXMSS.Security.Interval.Auxiliary.FullRangeInteraction
@@ -36,6 +37,7 @@ public import HashSig.GXMSS.Security.Interval.Reductions.ChainCollision
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainHybrid
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainPrograms
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainSource
+public import HashSig.GXMSS.Security.Interval.Reductions.EncodingComposition
 public import HashSig.GXMSS.Security.Interval.Reductions.EncodingSimulation
 public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames
 public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Bounds
