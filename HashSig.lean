@@ -28,6 +28,7 @@ public import HashSig.GXMSS.Security.Auxiliary.ChainSelection
 public import HashSig.GXMSS.Security.Auxiliary.ChainWitnesses
 public import HashSig.GXMSS.Security.Auxiliary.HashWitnesses
 public import HashSig.GXMSS.Security.Auxiliary.MerkleWitnesses
+public import HashSig.GXMSS.Security.Auxiliary.PRFDerivedIdealization
 public import HashSig.GXMSS.Security.EncodingInstances
 public import HashSig.GXMSS.Security.Interval.Auxiliary.FillerOpening
 public import HashSig.GXMSS.Security.Interval.Auxiliary.FillerTargets
@@ -39,6 +40,7 @@ public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Frontier
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Opening
 public import HashSig.GXMSS.Security.Interval.Auxiliary.PRFDerivedIdealization
 public import HashSig.GXMSS.Security.Interval.FullRange
+public import HashSig.GXMSS.Security.Interval.PRFDerivedFullRange
 public import HashSig.GXMSS.Security.Interval.PRFDerivedUnforgeability
 public import HashSig.GXMSS.Security.Interval.Reductions.ActiveSecurity
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainCollision
@@ -58,6 +60,8 @@ public import HashSig.GXMSS.Security.Interval.Reductions.PRFDerivedOracleInterac
 public import HashSig.GXMSS.Security.Interval.Reductions.SourcePartition
 public import HashSig.GXMSS.Security.Interval.Reductions.SplicedView
 public import HashSig.GXMSS.Security.Interval.Unforgeability
+public import HashSig.GXMSS.Security.PRFDerivedUnforgeability
+public import HashSig.GXMSS.Security.Reductions.PRFDerivedOracleInteraction
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Tweaks
