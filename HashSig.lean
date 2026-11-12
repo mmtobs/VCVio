@@ -24,11 +24,13 @@ public import HashSig.GXMSS.Security.Auxiliary.HashWitnesses
 public import HashSig.GXMSS.Security.Auxiliary.MerkleWitnesses
 public import HashSig.GXMSS.Security.Interval.Auxiliary.FillerOpening
 public import HashSig.GXMSS.Security.Interval.Auxiliary.FillerTargets
+public import HashSig.GXMSS.Security.Interval.Auxiliary.FullRangeInteraction
 public import HashSig.GXMSS.Security.Interval.Auxiliary.Interaction
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Collision
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Frontier
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Opening
+public import HashSig.GXMSS.Security.Interval.FullRange
 public import HashSig.GXMSS.Security.Interval.Reductions.ActiveSecurity
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainCollision
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainHybrid
@@ -48,6 +50,7 @@ public import HashSig.GXMSS.Security.Interval.Unforgeability
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Basic
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Chains
 public import HashSig.GXMSS.Security.Reductions.TargetRegistration.Tweaks
+public import HashSig.GXMSS.Security.Unforgeability
 public import HashSig.SLHDSA.Address
 public import HashSig.SLHDSA.AddressDiscipline
 public import HashSig.SLHDSA.C13.Concrete
