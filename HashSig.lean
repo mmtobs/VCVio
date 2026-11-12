@@ -33,6 +33,7 @@ public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames
 public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Bounds
 public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Reductions
 public import HashSig.GXMSS.Security.Interval.Reductions.FillerGames.Setup
+public import HashSig.GXMSS.Security.Interval.Reductions.FilteredView
 public import HashSig.GXMSS.Security.Interval.Reductions.MerkleCollision
 public import HashSig.GXMSS.Security.Interval.Reductions.MerkleGames
 public import HashSig.GXMSS.Security.Interval.Reductions.SourcePartition
