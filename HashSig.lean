@@ -14,8 +14,12 @@ public import HashSig.GXMSS.Interval.Merkle.Active
 public import HashSig.GXMSS.Interval.Merkle.Basic
 public import HashSig.GXMSS.Interval.Merkle.Construction
 public import HashSig.GXMSS.Interval.Merkle.Pruned
+public import HashSig.GXMSS.Interval.PRFDerivedScheme
 public import HashSig.GXMSS.Interval.Scheme
 public import HashSig.GXMSS.Merkle
+public import HashSig.GXMSS.PRFDerived.Query
+public import HashSig.GXMSS.PRFDerived.Retry
+public import HashSig.GXMSS.PRFDerivedScheme
 public import HashSig.GXMSS.Scheme
 public import HashSig.GXMSS.Security.Auxiliary.Adversary
 public import HashSig.GXMSS.Security.Auxiliary.ChainSelection
