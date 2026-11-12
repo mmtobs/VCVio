@@ -37,7 +37,9 @@ public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Collision
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Frontier
 public import HashSig.GXMSS.Security.Interval.Auxiliary.MerkleWitnesses.Opening
+public import HashSig.GXMSS.Security.Interval.Auxiliary.PRFDerivedIdealization
 public import HashSig.GXMSS.Security.Interval.FullRange
+public import HashSig.GXMSS.Security.Interval.PRFDerivedUnforgeability
 public import HashSig.GXMSS.Security.Interval.Reductions.ActiveSecurity
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainCollision
 public import HashSig.GXMSS.Security.Interval.Reductions.ChainHybrid
