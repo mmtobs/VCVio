@@ -6,6 +6,7 @@ public import VCVioTest.Algorithms.Hash
 public import VCVioTest.AnswerTapeAdaptedUnion
 public import VCVioTest.Asymptotics.Negligible
 public import VCVioTest.CachedPointsBound
+public import VCVioTest.ComplementaryChecksum
 public import VCVioTest.Computability
 public import VCVioTest.CryptoFoundations.BR93Measure
 public import VCVioTest.CryptoFoundations.ComplexityAdapters
@@ -19,6 +20,7 @@ public import VCVioTest.CryptoFoundations.FiatShamirWithAbortInstance
 public import VCVioTest.CryptoFoundations.KeyedHashCovering
 public import VCVioTest.CryptoFoundations.LeftOrRight
 public import VCVioTest.CryptoFoundations.OracleClosure
+public import VCVioTest.CryptoFoundations.PRFDomainTransport
 public import VCVioTest.CryptoFoundations.PRFMultiKey
 public import VCVioTest.CryptoFoundations.PRFTableMeasure
 public import VCVioTest.CryptoFoundations.SignatureAlg
@@ -47,6 +49,8 @@ public import VCVioTest.EvalDist.Transformers
 public import VCVioTest.EvalDist.UniformTable
 public import VCVioTest.FiatShamirAbort
 public import VCVioTest.FiatShamirKnowledgeExtraction
+public import VCVioTest.FiniteQuerySimulation
+public import VCVioTest.FirstSuccess
 public import VCVioTest.FischlinExpectedCost
 public import VCVioTest.FischlinExtraction
 public import VCVioTest.ForkBounds
@@ -73,6 +77,13 @@ public import VCVioTest.GroupModel.ToExplained
 public import VCVioTest.GroupModel.Typed
 public import VCVioTest.GroupModel.Virtualize
 public import VCVioTest.ITSR
+public import VCVioTest.IncomparableEncoding.Basic
+public import VCVioTest.IncomparableEncoding.Code
+public import VCVioTest.IncomparableEncoding.Instances
+public import VCVioTest.IncomparableEncoding.Retry
+public import VCVioTest.IncomparableEncoding.TargetCollisionReduction
+public import VCVioTest.IncomparableEncoding.TargetCollisionResistance
+public import VCVioTest.IndexedChain
 public import VCVioTest.KernelSemantics
 public import VCVioTest.ListCache
 public import VCVioTest.LoggedRunInvariant
@@ -80,6 +91,7 @@ public import VCVioTest.LongChainPrograms
 public import VCVioTest.MeasurabilityBoundary
 public import VCVioTest.MeasureSemantics
 public import VCVioTest.MerkleCheckpoints
+public import VCVioTest.MerkleHonestQueries
 public import VCVioTest.MerkleTreeBatch
 public import VCVioTest.MerkleTreeExtractability
 public import VCVioTest.MerkleTreeHashForest
@@ -114,6 +126,7 @@ public import VCVioTest.PFunctorFacade
 public import VCVioTest.PRFCacheRepresentation
 public import VCVioTest.PRFNetworkKernel
 public import VCVioTest.PRFNetworkUnlinkability
+public import VCVioTest.PRFProjectedQueries
 public import VCVioTest.PRFReductionBudgets
 public import VCVioTest.PerfectMerkleTree
 public import VCVioTest.PointerChainPuzzle.Bad
@@ -218,9 +231,11 @@ public import VCVioTest.Schemes.Schnorr.ChallengeRestriction
 public import VCVioTest.Schemes.Schnorr.Transforms
 public import VCVioTest.Schemes.VectorPedersen
 public import VCVioTest.SeparatedOTP
+public import VCVioTest.SigningKernel
 public import VCVioTest.Smoke
 public import VCVioTest.StateSeparating.Measure
 public import VCVioTest.StateTLift
+public import VCVioTest.SyncSignatureAlg
 public import VCVioTest.Tactic.Expectation
 public import VCVioTest.Tactic.Finiteness
 public import VCVioTest.Tactic.FunProp
